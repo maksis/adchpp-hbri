@@ -71,7 +71,7 @@ class Dev:
 			return self.get_build_root() + source_path + name
 
 	def get_sources(self, source_path, source_glob):
-		return map(lambda x: self.get_build_path(source_path) + x, glob.glob(source_glob))
+		return list(map(lambda x: self.get_build_path(source_path) + x, glob.glob(source_glob)))
 
 	def prepare_build(self, source_path, name, source_glob = '*.cpp', in_bin = True,
 			precompiled_header = None, shared_precompiled_header = None):
@@ -109,7 +109,7 @@ class Dev:
 					gch_tool = 'Gch'
 				else:
 					gch_tool = 'GchSh'
-				exec "env['" + gch_tool + "'] = env." + gch_tool + "(build_path + pch + '.h.gch', pch + '.h')[0]"
+				exec("env['" + gch_tool + "'] = env." + gch_tool + "(build_path + pch + '.h.gch', pch + '.h')[0]")
 
 				# little dance to add the pch object to include paths, while overriding the current directory
 				env['CXXCOM'] = env['CXXCOM'] + ' -include ' + env.Dir(build_path).abspath + '/' + pch + '.h'

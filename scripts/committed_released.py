@@ -36,6 +36,6 @@ for bug_task in bug_tasks:
 	except HTTPError:
 		unchanged.append(bug_task.bug.id)
 
-print '%d/%d bugs have been changed.' % (changed, total)
+print('%d/%d bugs have been changed.' % (changed, total))
 for id in unchanged:
-	print 'Bug #%d could not be changed.' % id
+	print('Bug #%d could not be changed.' % id)

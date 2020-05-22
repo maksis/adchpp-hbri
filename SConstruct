@@ -78,7 +78,7 @@ gcc_defs = {
 
 # --- cut ---
 
-import os,sys,distutils.sysconfig
+import os,sys,sysconfig
 
 # Plugins we can build have an "src/SConscript" file.
 plugins = [
@@ -107,7 +107,7 @@ opts.AddVariables(
 	BoolVariable('savetemps', 'Save intermediate compilation files (assembly output)', 'no'),
 	('prefix', 'Prefix to use when cross compiling', ''),
 	EnumVariable('arch', 'Target architecture', 'x86', ['x86', 'x64', 'ia64']),
-	('python', 'Python path to use when compiling python extensions', distutils.sysconfig.get_config_var('prefix')),
+	('python', 'Python path to use when compiling python extensions', sysconfig.get_config_var('prefix')),
 	('ruby', 'Path to the ruby binary', 'ruby'),
 	('lua', 'Path to the lua binary', 'lua'),
 	BoolVariable('systemlua', 'Try to use the system lua libraries', 'no'),
@@ -279,7 +279,7 @@ for plugin in env['plugins']:
 if env['docs']:
 	asciidoc_cmd = dev.get_asciidoc()
 	if asciidoc_cmd is None:
-		print 'asciidoc not found, docs won\'t be built'
+		print('asciidoc not found, docs won\'t be built')
 
 	else:
 		env['asciidoc_cmd'] = asciidoc_cmd

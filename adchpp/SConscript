@@ -13,7 +13,8 @@ def getRevision(env):
         import subprocess
         ret = subprocess.check_output(
             'hg log -r tip -T "{node | short} - {date | isodate}"',
-            shell=True
+            shell=True,
+            text=True
         )
         if ret:
             return ret
