@@ -126,7 +126,10 @@ struct ManagedConnection {
 typedef shared_ptr<ManagedConnection> ManagedConnectionPtr;
 
 struct ServerInfo {
-	std::string ip;
+	std::string bind4;
+	std::string bind6;
+	std::string address4;
+	std::string address6;
 	std::string port;
 
 	TLSInfo TLSParams;
@@ -291,7 +294,7 @@ public:
 	static uint32_t rand(uint32_t low, uint32_t high);
 	static double randd();
 	
-	static bool isPrivateIp(std::string const& ip);
+	static bool isPrivateIp(std::string const& ip, bool v6);
 	static bool validateCharset(std::string const& field, int p);
 
 };
@@ -723,7 +726,7 @@ public:
 	bool verifyPassword(Entity& c, const std::string& password, const ByteVector& salt, const std::string& suppliedHash);
 	bool verifyHashedPassword(Entity& c, const ByteVector& hashedPassword, int64_t hashedPasswordLen,
 				  const ByteVector& salt, const std::string& suppliedHash) throw();
-	bool verifyIp(Client& c, AdcCommand& cmd) throw();
+	bool verifyIp(Client& c, AdcCommand& cmd, bool isHbriConn) throw();
 	bool verifyCID(Entity& c, AdcCommand& cmd) throw();
 	bool verifyOverflow(Entity& c);
 	void setState(Entity& c, Entity::State newState) throw();

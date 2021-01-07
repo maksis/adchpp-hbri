@@ -22,7 +22,10 @@
 namespace adchpp {
 
 struct ServerInfo {
-	std::string ip;
+	std::string bind4;
+	std::string bind6;
+	std::string address4;
+	std::string address6;
 	std::string port;
 
 	struct TLSInfo {

@@ -338,7 +338,11 @@ uint32_t Util::rand() {
 }
 #endif
 
-bool Util::isPrivateIp(std::string const& ip) {
+bool Util::isPrivateIp(std::string const& ip, bool v6) {
+	if (v6) {
+		return strncmp(ip.c_str(), "fe80", 4) == 0;
+	}
+
 	struct in_addr addr;
 
 	addr.s_addr = inet_addr(ip.c_str());

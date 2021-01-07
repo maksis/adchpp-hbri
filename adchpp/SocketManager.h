@@ -94,6 +94,7 @@ private:
 	friend class ManagedSocket;
 	friend class SocketFactory;
 
+	void prepareProtocol(ServerInfoPtr& si, bool v6);
 	void closeFactories();
 
 	Core &core;
@@ -126,6 +127,9 @@ private:
 	void onLoad(const SimpleXML& xml) throw();
 
 	SocketManager(Core &core);
+
+	bool hasV4Address;
+	bool hasV6Address;
 };
 
 }

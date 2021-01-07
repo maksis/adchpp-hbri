@@ -131,7 +131,7 @@ public:
 	/**
 	 * Verify that IP is correct and replace any zero addresses.
 	 */
-	ADCHPP_DLL bool verifyIp(Client& c, AdcCommand& cmd) throw();
+	ADCHPP_DLL bool verifyIp(Client& c, AdcCommand& cmd, bool isHbriConn) throw();
 
 	/**
 	 * Verify that CID is correct and corresponds to PID
@@ -169,10 +169,13 @@ public:
 	void setMaxCommandSize(size_t newSize) { maxCommandSize = newSize; }
 	size_t getMaxCommandSize() const { return maxCommandSize; }
 
+	void setHbriTimeout(size_t millis) { hbriTimeout = millis; }
+	size_t getHbriTimeout() const { return hbriTimeout; }
 	void setLogTimeout(size_t millis) { logTimeout = millis; }
 	size_t getLogTimeout() const { return logTimeout; }
 
 	Core &getCore() const { return core; }
+	void prepareSupports(bool addHbri);
 private:
 	friend class Core;
 	friend class Client;
@@ -182,6 +185,9 @@ private:
 	Core &core;
 
 	std::list<std::pair<Client*, time::ptime> > logins;
+
+	typedef std::unordered_map<std::string, std::pair<Entity*, time::ptime>> TokenMap;
+	TokenMap hbriTokens;
 
 	EntityMap entities;
 	typedef std::unordered_map<std::string, Entity*> NickMap;
@@ -193,6 +199,7 @@ private:
 
 	size_t maxCommandSize;
 	size_t logTimeout;
+	size_t hbriTimeout;
 
 	// Temporary string to use whenever a temporary string is needed (to avoid (de)allocating memory all the time...)
 	std::string strtmp;
@@ -203,6 +210,7 @@ private:
 
 	uint32_t makeSID();
 
+	bool sendHBRI(Entity& c);
 	void maybeSend(Entity& c, const AdcCommand& cmd);
 
 	void removeLogins(Entity& c) throw();
@@ -210,6 +218,7 @@ private:
 
 	bool handle(AdcCommand::SUP, Entity& c, AdcCommand& cmd) throw();
 	bool handle(AdcCommand::INF, Entity& c, AdcCommand& cmd) throw();
+	bool handle(AdcCommand::TCP, Entity& c, AdcCommand& cmd) throw();
 	bool handleDefault(Entity& c, AdcCommand& cmd) throw();
 
 	template<typename T> bool handle(T, Entity& c, AdcCommand& cmd) throw() { return handleDefault(c, cmd); }
@@ -225,7 +234,7 @@ private:
 	void badState(Entity& c, const AdcCommand& cmd) throw();
 	/** send a fatal STA, a QUI with TL-1, then disconnect. */
 	void disconnect(Entity& c, Util::Reason reason, const std::string& info,
-		AdcCommand::Error error = AdcCommand::ERROR_PROTOCOL_GENERIC, const std::string& staParam = Util::emptyString);
+		AdcCommand::Error error = AdcCommand::ERROR_PROTOCOL_GENERIC, const std::string& staParam = Util::emptyString, int aReconnectTime = -1);
 
 	SignalConnected::Signal signalConnected_;
 	SignalReady::Signal signalReady_;
@@ -236,6 +245,7 @@ private:
 	SignalDisconnected::Signal signalDisconnected_;
 
 	ClientManager(Core &core) throw();
+	void onTimerSecond();
 };
 
 }

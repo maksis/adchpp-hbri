@@ -43,6 +43,8 @@ public:
 	/** @param reason The statistic to update */
 	ADCHPP_DLL virtual void disconnect(Util::Reason reason, const std::string &info = Util::emptyString) throw();
 	const std::string& getIp() const throw() { return socket->getIp(); }
+	bool getHbriParams(AdcCommand& cmd) const throw() { return socket->getHbriParams(cmd); }
+	bool isV6() const { return socket->isV6(); }
 
 	/**
 	 * Set data mode for aBytes bytes.

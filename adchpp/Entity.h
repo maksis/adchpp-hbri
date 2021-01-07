@@ -33,6 +33,8 @@ public:
 	enum State {
 		/** Initial protocol negotiation (wait for SUP) */
 		STATE_PROTOCOL,
+		/** Validating the secondary address */
+		STATE_HBRI,
 		/** Identify the connecting client (wait for INF) */
 		STATE_IDENTIFY,
 		/** Verify the client (wait for PAS) */
@@ -63,7 +65,10 @@ public:
 		FLAG_OK_IP = 0x400,
 
 		/** This entity is now a ghost being disconnected, totally ignored by ADCH++ */
-		FLAG_GHOST = 0x800
+		FLAG_GHOST = 0x800,
+
+		/** Set in the login phase if the users provides an IP for another protocol **/
+		FLAG_VALIDATE_HBRI = 0x1000
 	};
 
 
@@ -86,6 +91,12 @@ public:
 	ADCHPP_DLL StringList getSupportList() const;
 	ADCHPP_DLL bool hasSupport(uint32_t feature) const;
 	ADCHPP_DLL bool removeSupports(uint32_t feature);
+
+	ADCHPP_DLL bool hasClientSupport(uint32_t feature) const;
+	ADCHPP_DLL bool removeClientSupport(uint32_t feature);
+
+	/** Remove supports for the protocol that wasn't used for connecting **/
+	ADCHPP_DLL void stripProtocolSupports() throw();
 
 	ADCHPP_DLL const BufferPtr& getSUP() const;
 

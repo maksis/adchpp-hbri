@@ -36,6 +36,7 @@ public:
 	};
 
 	enum Error {
+		SUCCESS = 0,
 		ERROR_GENERIC = 0,
 		ERROR_HUB_GENERIC = 10,
 		ERROR_HUB_FULL = 11,
@@ -63,7 +64,8 @@ public:
 		ERROR_FILE_NOT_AVAILABLE = 51,
 		ERROR_FILE_PART_NOT_AVAILABLE = 52,
 		ERROR_SLOTS_FULL = 53,
-		ERROR_NO_CLIENT_HASH = 54
+		ERROR_NO_CLIENT_HASH = 54,
+		ERROR_HBRI_TIMEOUT = 55
 	};
 
 	enum Severity {
@@ -109,6 +111,7 @@ public:
 	C(CMD, 'C','M','D');
 	C(NAT, 'N','A','T');
 	C(RNT, 'R','N','T');
+	C(TCP, 'T','C','P');
 #undef C
 
 	static const uint32_t HUB_SID = static_cast<uint32_t>(-1);
@@ -225,6 +228,7 @@ public:
 			C(CMD);
 			C(NAT);
 			C(RNT);
+			C(TCP);
 			default:
 				dcdebug("Unknown ADC command: %.50s\n", cmd.toString().c_str());
 				return true;

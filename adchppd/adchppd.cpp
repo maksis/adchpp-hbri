@@ -72,6 +72,8 @@ void loadXML(Core &core, const string& aFileName)
 						core.getSocketManager().setDisconnectTimeout(Util::toInt(xml.getChildData()));
 					} else if(xml.getChildName() == "LogTimeout") {
 						core.getClientManager().setLogTimeout(Util::toInt(xml.getChildData()));
+					} else if (xml.getChildName() == "HbriTimeout") {
+						core.getClientManager().setHbriTimeout(Util::toInt(xml.getChildData()));
 					}
 				}
 
@@ -84,6 +86,11 @@ void loadXML(Core &core, const string& aFileName)
 				while(xml.findChild("Server")) {
 					ServerInfoPtr server = make_shared<ServerInfo>();
 					server->port = xml.getChildAttrib("Port", Util::emptyString);
+
+					server->bind4 = xml.getChildAttrib("BindAddress4", Util::emptyString);
+					server->bind6 = xml.getChildAttrib("BindAddress6", Util::emptyString);
+					server->address4 = xml.getChildAttrib("HubAddress4", Util::emptyString);
+					server->address6 = xml.getChildAttrib("HubAddress6", Util::emptyString);
 
 					if(xml.getBoolChildAttrib("TLS")) {
 						server->TLSParams.cert = File::makeAbsolutePath(xml.getChildAttrib("Certificate"));

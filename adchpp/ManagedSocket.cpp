@@ -22,18 +22,21 @@
 
 #include "SocketManager.h"
 
+#include <boost/asio/ip/address.hpp>
+
 namespace adchpp {
 
 using namespace std;
 
 using namespace boost::asio;
 
-ManagedSocket::ManagedSocket(SocketManager &sm, const AsyncStreamPtr &sock_) :
+ManagedSocket::ManagedSocket(SocketManager &sm, const AsyncStreamPtr &sock_, const ServerInfoPtr& aServer) :
 	sock(sock_),
 	overflow(time::not_a_date_time),
 	disc(time::not_a_date_time),
 	lastWrite(time::not_a_date_time),
-	sm(sm)
+	sm(sm),
+	server(aServer)
 { }
 
 ManagedSocket::~ManagedSocket() throw() {
@@ -250,6 +253,39 @@ struct Reporter {
 	Util::Reason reason;
 	std::string info;
 };
+
+bool ManagedSocket::getHbriParams(AdcCommand& cmd) const throw() {
+	if (!isV6()) {
+		if (!server->address6.empty()) {
+			cmd.addParam("I6", server->address6);
+		} else {
+			return false;
+		}
+
+		cmd.addParam("P6", server->port);
+	} else {
+		if (!server->address4.empty()) {
+			cmd.addParam("I4", server->address4);
+		} else {
+			return false;
+		}
+
+		cmd.addParam("P4", server->port);
+	}
+
+	return true;
+}
+
+bool ManagedSocket::isV6() const throw() {
+	using namespace boost::asio::ip;
+
+	address remote;
+	remote = address::from_string(ip);
+	if (remote.is_v4() || (remote.is_v6() && remote.to_v6().is_v4_mapped()))
+		return false;
+
+	return true;
+}
 
 void ManagedSocket::disconnect(Util::Reason reason, const std::string &info) throw() {
 	if(disconnecting()) {

@@ -22,6 +22,8 @@
 #include "common.h"
 
 #include "forward.h"
+
+#include "AdcCommand.h"
 #include "Signal.h"
 #include "Util.h"
 #include "Buffer.h"
@@ -35,7 +37,7 @@ namespace adchpp {
  */
 class ManagedSocket : private boost::noncopyable, public enable_shared_from_this<ManagedSocket> {
 public:
-	ManagedSocket(SocketManager &sm, const AsyncStreamPtr& sock_);
+	ManagedSocket(SocketManager &sm, const AsyncStreamPtr& sock_, const ServerInfoPtr& aServer);
 
 	/** Asynchronous write */
 	ADCHPP_DLL void write(const BufferPtr& buf, bool lowPrio = false) throw();
@@ -68,6 +70,8 @@ public:
 
 	~ManagedSocket() throw();
 
+	bool getHbriParams(AdcCommand& cmd) const throw();
+	bool isV6() const throw();
 private:
 	friend class SocketManager;
 	friend class SocketFactory;
@@ -110,6 +114,8 @@ private:
 	FailedHandler failedHandler;
 
 	SocketManager &sm;
+
+	ServerInfoPtr server;
 };
 
 }

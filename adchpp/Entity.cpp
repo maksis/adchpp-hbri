@@ -48,10 +48,9 @@ void Entity::setField(const char* name, const std::string& value) {
 
 	if(code == AdcCommand::toField("SU")) {
 		filters.clear();
-
-		if((value.size() + 1) % 5 == 0) {
+		if ((value.size() + 1) % 5 == 0) {
 			filters.reserve((value.size() + 1) / 5);
-			for(size_t i = 0; i < value.size(); i += 5) {
+			for (size_t i = 0; i < value.size(); i += 5) {
 				filters.push_back(AdcCommand::toFourCC(value.data() + i));
 			}
 		}
@@ -151,6 +150,41 @@ void Entity::updateSupports(const AdcCommand& cmd) throw() {
 		} else if(str[0] == 'R' && str[1] == 'M') {
 			removeSupports(AdcCommand::toFourCC(str.c_str() + 2));
 		}
+	}
+}
+
+bool Entity::hasClientSupport(uint32_t feature) const {
+	return std::find(filters.begin(), filters.end(), feature) != filters.end();
+}
+
+bool Entity::removeClientSupport(uint32_t feature) {
+	auto f = std::find(filters.begin(), filters.end(), feature);
+	if (f == filters.end()) {
+		return false;
+	}
+
+	filters.erase(f);
+
+	auto& infSupports = fields.find(AdcCommand::toField("SU"))->second;
+
+	auto p = infSupports.find(AdcCommand::fromFourCC(feature));
+	dcassert(p != std::string::npos);
+	infSupports.erase(p, 5);
+
+	if (!infSupports.empty() && infSupports.back() == ',')
+		infSupports.erase(supports.size() - 1);
+
+	return true;
+}
+
+static const int protoSupportCount = 2;
+static uint32_t supports4[protoSupportCount] = { AdcCommand::toFourCC("TCP4"), AdcCommand::toFourCC("UDP4") };
+static uint32_t supports6[protoSupportCount] = { AdcCommand::toFourCC("TCP6"), AdcCommand::toFourCC("UDP6") };
+
+void Entity::stripProtocolSupports() throw() {
+	const auto& sup = dynamic_cast<Client*>(this)->isV6() ? supports4 : supports6;
+	for (auto i = 0; i < protoSupportCount; ++i) {
+		removeClientSupport(sup[i]);
 	}
 }
 

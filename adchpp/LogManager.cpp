@@ -44,10 +44,10 @@ void LogManager::dolog(const string& msg) throw() {
 	dcdebug("Logging: %s\n", msg.c_str());
 	signalLog_(msg);
 	if(getEnabled()) {
-		string logFile = Util::formatTime(File::makeAbsolutePath(core.getConfigPath(), getLogFile()));
+		string logFilePath = Util::formatTime(File::makeAbsolutePath(core.getConfigPath(), getLogFile()));
 		FastMutex::Lock l(mtx);
 		try {
-			File f(logFile, File::WRITE, File::OPEN | File::CREATE);
+			File f(logFilePath, File::WRITE, File::OPEN | File::CREATE);
 			f.setEndPos(0);
 			f.write(msg + "\r\n");
 			return;
@@ -55,9 +55,9 @@ void LogManager::dolog(const string& msg) throw() {
 			dcdebug("LogManager::log: %s\n", e.getError().c_str());
 		}
 		try {
-			File::ensureDirectory(logFile);
+			File::ensureDirectory(logFilePath);
 
-			File f(logFile, File::WRITE, File::OPEN | File::CREATE);
+			File f(logFilePath, File::WRITE, File::OPEN | File::CREATE);
 			f.setEndPos(0);
 			f.write(msg + "\r\n");
 		} catch(const FileException& ee) {

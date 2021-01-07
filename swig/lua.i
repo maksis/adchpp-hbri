@@ -322,7 +322,7 @@ uint32_t, const uint32_t&
 		if(ret) {
 			return *reinterpret_cast<SWIGLUA_REF*>(ret);
 		}
-		return {0, 0};
+		return SWIGLUA_REF();
 	}
 
 	void setPluginData(const PluginDataHandle& handle, SWIGLUA_REF data) {

@@ -215,9 +215,7 @@ env.Append(LINKFLAGS = link_flags['common'])
 env.Append(UNDEF = '-Wl,--no-undefined')
 
 if dev.is_win32():
-	env.Append(LIBS = ['ws2_32', 'mswsock'])
-
-env.SourceCode('.', None)
+	env.Append(LIBS = ['ws2_32', 'mswsock', 'crypt32'])
 
 import SCons.Scanner
 SWIGScanner = SCons.Scanner.ClassicCPP(
@@ -256,10 +254,9 @@ if dev.env['systemboost']:
 
 else:
 	dev.boost_system = dev.build('boost/libs/system/src/')
-	dev.boost_date_time = dev.build('boost/libs/date_time/src/')
 	dev.boost_locale = dev.build('boost/libs/locale/src/')
 
-	env.Append(LIBS = ['aboost_system', 'aboost_date_time', 'aboost_locale'])
+	env.Append(LIBS = ['aboost_system', 'aboost_locale'])
 
 dev.adchpp = dev.build('adchpp/')
 

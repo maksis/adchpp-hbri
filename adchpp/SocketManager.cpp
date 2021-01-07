@@ -20,6 +20,7 @@
 
 #include "SocketManager.h"
 
+#include "ClientManager.h"
 #include "LogManager.h"
 #include "ManagedSocket.h"
 #include "ServerInfo.h"
@@ -47,7 +48,9 @@ core(core),
 bufferSize(1024),
 maxBufferSize(16 * 1024),
 overflowTimeout(60 * 1000),
-disconnectTimeout(10 * 1000)
+disconnectTimeout(10 * 1000),
+hasV4Address(false),
+hasV6Address(false)
 {
 }
 
@@ -69,8 +72,8 @@ public:
 	}
 
 	virtual void setOptions(size_t bufferSize) {
-		sock.lowest_layer().set_option(socket_base::receive_buffer_size(bufferSize));
-		sock.lowest_layer().set_option(socket_base::send_buffer_size(bufferSize));
+		sock.lowest_layer().set_option(socket_base::receive_buffer_size((int)bufferSize));
+		sock.lowest_layer().set_option(socket_base::send_buffer_size((int)bufferSize));
 	}
 
 	virtual std::string getIp() {
@@ -132,7 +135,7 @@ public:
 
 	virtual void shutdown(const Handler& handler) {
 		sock.shutdown(ip::tcp::socket::shutdown_send);
-		sock.get_io_service().post(ShutdownHandler(handler));
+		sock.get_executor().execute(ShutdownHandler(handler));
 	}
 
 	virtual void close() {
@@ -192,10 +195,11 @@ static string formatEndpoint(const ip::tcp::endpoint& ep) {
 
 class SocketFactory : public enable_shared_from_this<SocketFactory>, boost::noncopyable {
 public:
-	SocketFactory(SocketManager& sm, const SocketManager::IncomingHandler& handler_, const ServerInfo& info, const ip::tcp::endpoint& endpoint) :
+	SocketFactory(SocketManager& sm, const SocketManager::IncomingHandler& handler_, ServerInfoPtr& info, const ip::tcp::endpoint& endpoint) :
 		sm(sm),
 		acceptor(sm.io),
-		handler(handler_)
+		handler(handler_),
+		si(info)
 	{
 		acceptor.open(endpoint.protocol());
 		acceptor.set_option(socket_base::reuse_address(true));
@@ -203,21 +207,36 @@ public:
 			acceptor.set_option(ip::v6_only(true));
 		}
 
+		auto a = endpoint.address().to_string();
+
 		acceptor.bind(endpoint);
 		acceptor.listen(socket_base::max_connections);
 
 		LOGC(sm.getCore(), SocketManager::className,
 			"Listening on " + formatEndpoint(endpoint) +
-			" (Encrypted: " + (info.secure() ? "Yes)" : "No)"));
+			" (Encrypted: " + (info->secure() ? "Yes)" : "No)"));
 
 #ifdef HAVE_OPENSSL
-		if(info.secure()) {
-		    context.reset(new ssl::context(ssl::context::sslv23_server));
-		    context->set_options(ssl::context::no_sslv2 | ssl::context::no_sslv3 | ssl::context::single_dh_use);
-		    //context->set_password_callback(boost::bind(&server::get_password, this));
-		    context->use_certificate_chain_file(info.TLSParams.cert);
-		    context->use_private_key_file(info.TLSParams.pkey, ssl::context::pem);
-		    context->use_tmp_dh_file(info.TLSParams.dh);
+		if(info->secure()) {
+			context.reset(new ssl::context(ssl::context::tls));
+			
+			context->set_options(ssl::context::no_sslv2 | ssl::context::no_sslv3 | ssl::context::single_dh_use);
+			//context->set_password_callback(boost::bind(&server::get_password, this));
+			context->use_certificate_chain_file(info->TLSParams.cert);
+			context->use_private_key_file(info->TLSParams.pkey, ssl::context::pem);
+			context->use_tmp_dh_file(info->TLSParams.dh);
+				
+#if OPENSSL_VERSION_NUMBER >= 0x1000201fL
+				SSL_CTX_set1_curves_list(context->native_handle(), "P-256");
+#endif
+
+			EC_KEY* tmp_ecdh;
+			if ((tmp_ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1)) != NULL) {
+				SSL_CTX_set_options(context->native_handle(), SSL_OP_SINGLE_ECDH_USE);
+				SSL_CTX_set_tmp_ecdh(context->native_handle(), tmp_ecdh);
+
+				EC_KEY_free(tmp_ecdh);
+			}
 		}
 #endif
 	}
@@ -230,12 +249,12 @@ public:
 #ifdef HAVE_OPENSSL
 		if(context) {
 			auto s = make_shared<TLSSocketStream>(sm.io, *context);
-			auto socket = make_shared<ManagedSocket>(sm, s);
+			auto socket = make_shared<ManagedSocket>(sm, s, si);
 			acceptor.async_accept(s->sock.lowest_layer(), std::bind(&SocketFactory::handleAccept, shared_from_this(), std::placeholders::_1, socket));
 		} else {
 #endif
 			auto s = make_shared<SimpleSocketStream>(sm.io);
-			auto socket = make_shared<ManagedSocket>(sm, s);
+			auto socket = make_shared<ManagedSocket>(sm, s, si);
 			acceptor.async_accept(s->sock.lowest_layer(), std::bind(&SocketFactory::handleAccept, shared_from_this(), std::placeholders::_1, socket));
 #ifdef HAVE_OPENSSL
 		}
@@ -245,7 +264,9 @@ public:
 	void handleAccept(const error_code& ec, const ManagedSocketPtr& socket) {
 		if(!ec) {
 			socket->sock->setOptions(sm.getBufferSize());
-			socket->setIp(socket->sock->getIp());
+			auto ip = socket->sock->getIp();
+			auto p = ip.find("%");
+			socket->setIp(p != string::npos ? ip.substr(0, p) : ip);
 		}
 
 		completeAccept(ec, socket);
@@ -263,36 +284,67 @@ public:
 	SocketManager &sm;
 	ip::tcp::acceptor acceptor;
 	SocketManager::IncomingHandler handler;
-
+	ServerInfoPtr si;
 #ifdef HAVE_OPENSSL
 	unique_ptr<ssl::context> context;
 #endif
 
 };
 
+void SocketManager::prepareProtocol(ServerInfoPtr& si, bool v6) {
+	const string proto = v6 ? "IPv6" : "IPv4";
+	try {
+		using ip::tcp;
+		tcp::resolver r(io);
+
+		// Resolve the public address
+		string& hubAddress = v6 ? si->address6 : si->address4;
+		if (!hubAddress.empty()) {
+			try {
+				auto remote = r.resolve(tcp::resolver::query(v6 ? tcp::v6() : tcp::v4(), hubAddress, si->port,
+					tcp::resolver::query::address_configured | tcp::resolver::query::passive));
+				hubAddress = remote->endpoint().address().to_string();
+				v6 ? hasV6Address = true : hasV4Address = true;
+			} catch (const std::exception& e) {
+				LOG(SocketManager::className, "Error when resolving the " + proto + " hub address " + hubAddress + ": " + e.what());
+				hubAddress = Util::emptyString;
+			}
+		}
+
+		// Resolve the bind address
+		auto local = r.resolve(tcp::resolver::query(v6 ? tcp::v6() : tcp::v4(), v6 ? si->bind6 : si->bind4, si->port,
+			tcp::resolver::query::address_configured | tcp::resolver::query::passive));
+
+		for (auto i = local; i != tcp::resolver::iterator(); ++i) {
+			auto factory = make_shared<SocketFactory>(*this, incomingHandler, si, *i);
+			factory->prepareAccept();
+			factories.push_back(factory);
+		}
+	} catch (const std::exception& e) {
+		LOG(SocketManager::className, "Error while loading " + proto + " server on port " + si->port + ": " + e.what());
+	}
+}
+
 int SocketManager::run() {
+	//Sleep(10000);
 	LOG(SocketManager::className, "Starting");
 
 	work.reset(new io_service::work(io));
 
 	for(auto i = servers.begin(), iend = servers.end(); i != iend; ++i) {
 		auto& si = *i;
-
-		try {
-			using ip::tcp;
-			tcp::resolver r(io);
-			auto local = r.resolve(tcp::resolver::query(si->ip, si->port,
-				tcp::resolver::query::address_configured | tcp::resolver::query::passive));
-
-			for(auto i = local; i != tcp::resolver::iterator(); ++i) {
-				SocketFactoryPtr factory = make_shared<SocketFactory>(*this, incomingHandler, *si, *i);
-				factory->prepareAccept();
-				factories.push_back(factory);
-			}
-		} catch(const std::exception& e) {
-			LOG(SocketManager::className, "Error while loading server on port " + si->port +": " + e.what());
+		bool listenAll = si->bind4.empty() && si->bind6.empty();
+		
+		if (!si->bind4.empty() || listenAll) {
+			prepareProtocol(si, false);
+		}
+			
+		if (!si->bind6.empty() || listenAll) {
+			prepareProtocol(si, true);
 		}
 	}
+
+	core.getClientManager().prepareSupports(hasV4Address && hasV6Address);
 
 	io.run();
 

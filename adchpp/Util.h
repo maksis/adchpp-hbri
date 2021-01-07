@@ -102,6 +102,7 @@ public:
 		REASON_INVALID_DESCRIPTION,
 		REASON_WRITE_TIMEOUT,
 		REASON_SOCKET_ERROR,
+		REASON_HBRI,
 		REASON_LAST,
 	};
 
@@ -228,7 +229,7 @@ public:
 	static uint32_t rand(uint32_t low, uint32_t high) { return rand(high-low) + low; }
 	static double randd() { return ((double)rand()) / ((double)0xffffffff); }
 
-	ADCHPP_DLL static bool isPrivateIp(std::string const& ip);
+	ADCHPP_DLL static bool isPrivateIp(std::string const& ip, bool v6);
 	ADCHPP_DLL static bool validateCharset(std::string const& field, int p);
 };
 
