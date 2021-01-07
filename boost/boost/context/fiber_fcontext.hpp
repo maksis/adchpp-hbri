@@ -92,12 +92,11 @@ void fiber_entry( transfer_t t) noexcept {
 
 template< typename Ctx, typename Fn >
 transfer_t fiber_ontop( transfer_t t) {
-    auto p = static_cast< std::tuple< Fn > * >( t.data);
-    BOOST_ASSERT( nullptr != p);
-    typename std::decay< Fn >::type fn = std::get< 0 >( * p);
+    BOOST_ASSERT( nullptr != t.data);
+    auto p = *static_cast< Fn * >( t.data);
     t.data = nullptr;
     // execute function, pass fiber via reference
-    Ctx c = fn( Ctx{ t.fctx } );
+    Ctx c = p( Ctx{ t.fctx } );
 #if defined(BOOST_NO_CXX14_STD_EXCHANGE)
     return { exchange( c.fctx_, nullptr), nullptr };
 #else
@@ -292,7 +291,7 @@ public:
     template< typename Fn >
     fiber resume_with( Fn && fn) && {
         BOOST_ASSERT( nullptr != fctx_);
-        auto p = std::make_tuple( std::forward< Fn >( fn) );
+        auto p = std::forward< Fn >( fn);
         return { detail::ontop_fcontext(
 #if defined(BOOST_NO_CXX14_STD_EXCHANGE)
                     detail::exchange( fctx_, nullptr),
@@ -300,7 +299,7 @@ public:
                     std::exchange( fctx_, nullptr),
 #endif
                     & p,
-                    detail::fiber_ontop< fiber, Fn >).fctx };
+                    detail::fiber_ontop< fiber, decltype(p) >).fctx };
     }
 
     explicit operator bool() const noexcept {
@@ -315,6 +314,8 @@ public:
         return fctx_ < other.fctx_;
     }
 
+    #if !defined(BOOST_EMBTC)
+    
     template< typename charT, class traitsT >
     friend std::basic_ostream< charT, traitsT > &
     operator<<( std::basic_ostream< charT, traitsT > & os, fiber const& other) {
@@ -325,11 +326,33 @@ public:
         }
     }
 
+    #else
+    
+    template< typename charT, class traitsT >
+    friend std::basic_ostream< charT, traitsT > &
+    operator<<( std::basic_ostream< charT, traitsT > & os, fiber const& other);
+
+    #endif
+
     void swap( fiber & other) noexcept {
         std::swap( fctx_, other.fctx_);
     }
 };
 
+#if defined(BOOST_EMBTC)
+
+    template< typename charT, class traitsT >
+    inline std::basic_ostream< charT, traitsT > &
+    operator<<( std::basic_ostream< charT, traitsT > & os, fiber const& other) {
+        if ( nullptr != other.fctx_) {
+            return os << other.fctx_;
+        } else {
+            return os << "{not-a-context}";
+        }
+    }
+
+#endif
+    
 inline
 void swap( fiber & l, fiber & r) noexcept {
     l.swap( r);

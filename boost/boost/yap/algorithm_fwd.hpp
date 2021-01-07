@@ -131,10 +131,10 @@ namespace boost { namespace yap {
               std::is_same<
                   std::remove_cv_t<decltype(
                       detail::remove_cv_ref_t<Expr>::kind)>,
-                  expr_kind>{} &&
+                  expr_kind>::value &&
                   hana::is_a<
                       hana::tuple_tag,
-                      decltype(std::declval<Expr>().elements)>()>
+                      decltype(std::declval<Expr>().elements)>>
     {
     };
 
@@ -155,21 +155,21 @@ namespace boost { namespace yap {
 #ifndef BOOST_YAP_DOXYGEN
 
     template<typename Expr, typename... T>
-    decltype(auto) evaluate(Expr && expr, T &&... t);
+    constexpr decltype(auto) evaluate(Expr && expr, T &&... t);
 
     template<typename Expr, typename Transform, typename... Transforms>
     constexpr decltype(auto) transform(
         Expr && expr, Transform && transform, Transforms &&... transforms);
 
     template<typename Expr, typename Transform, typename... Transforms>
-    decltype(auto) transform_strict(
+    constexpr decltype(auto) transform_strict(
         Expr && expr, Transform && transform, Transforms &&... transforms);
 
     template<typename T>
-    decltype(auto) deref(T && x);
+    constexpr decltype(auto) deref(T && x);
 
     template<typename Expr>
-    decltype(auto) value(Expr && expr);
+    constexpr decltype(auto) value(Expr && expr);
 
 #endif // BOOST_YAP_DOXYGEN
 

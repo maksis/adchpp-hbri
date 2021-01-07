@@ -5,10 +5,11 @@
 // Copyright (c) 2009-2014 Mateusz Loskot, London, UK.
 // Copyright (c) 2013-2014 Adam Wulkiewicz, Lodz, Poland.
 
-// This file was modified by Oracle on 2014.
-// Modifications copyright (c) 2014, Oracle and/or its affiliates.
+// This file was modified by Oracle on 2014-2020.
+// Modifications copyright (c) 2014-2020, Oracle and/or its affiliates.
 
 // Contributed and/or modified by Menelaos Karavelas, on behalf of Oracle
+// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
 // Parts of Boost.Geometry are redesigned from Geodan's Geographic Library
 // (geolib/GGL), copyright (c) 1995-2010 Geodan, Amsterdam, the Netherlands.
@@ -21,10 +22,13 @@
 #define BOOST_GEOMETRY_ALGORITHMS_DETAIL_DISTANCE_POINT_TO_GEOMETRY_HPP
 
 #include <iterator>
+#include <type_traits>
 
 #include <boost/core/ignore_unused.hpp>
-#include <boost/range.hpp>
-#include <boost/type_traits/is_same.hpp>
+#include <boost/range/begin.hpp>
+#include <boost/range/end.hpp>
+#include <boost/range/size.hpp>
+#include <boost/range/value_type.hpp>
 
 #include <boost/geometry/core/closure.hpp>
 #include <boost/geometry/core/point_type.hpp>
@@ -39,13 +43,12 @@
 #include <boost/geometry/strategies/tags.hpp>
 
 #include <boost/geometry/algorithms/assign.hpp>
-#include <boost/geometry/algorithms/covered_by.hpp>
-#include <boost/geometry/algorithms/within.hpp>
 
 #include <boost/geometry/algorithms/detail/closest_feature/geometry_to_range.hpp>
 #include <boost/geometry/algorithms/detail/closest_feature/point_to_range.hpp>
 #include <boost/geometry/algorithms/detail/distance/is_comparable.hpp>
 #include <boost/geometry/algorithms/detail/distance/iterator_selector.hpp>
+#include <boost/geometry/algorithms/detail/within/point_in_geometry.hpp>
 
 #include <boost/geometry/algorithms/dispatch/distance.hpp>
 
@@ -160,7 +163,9 @@ struct point_to_ring
                                     Ring const& ring,
                                     Strategy const& strategy)
     {
-        if (geometry::within(point, ring))
+        // TODO: pass strategy
+        if (within::within_point_geometry(point, ring,
+                                          strategy.get_point_in_geometry_strategy()))
         {
             return return_type(0);
         }
@@ -204,7 +209,9 @@ private:
         {
             for (InteriorRingIterator it = first; it != last; ++it)
             {
-                if (geometry::within(point, *it))
+                // TODO: pass strategy
+                if (within::within_point_geometry(point, *it,
+                                                  strategy.get_point_in_geometry_strategy()))
                 {
                     // the point is inside a polygon hole, so its distance
                     // to the polygon its distance to the polygon's
@@ -233,7 +240,9 @@ public:
                                     Polygon const& polygon,
                                     Strategy const& strategy)
     {
-        if (!geometry::covered_by(point, exterior_ring(polygon)))
+        // TODO: pass strategy
+        if (! within::covered_by_point_geometry(point, exterior_ring(polygon),
+                                                strategy.get_point_in_geometry_strategy()))
         {
             // the point is outside the exterior ring, so its distance
             // to the polygon is its distance to the polygon's exterior ring
@@ -253,7 +262,7 @@ template
     typename Point,
     typename MultiGeometry,
     typename Strategy,
-    bool CheckCoveredBy = boost::is_same
+    bool CheckCoveredBy = std::is_same
         <
             typename tag<MultiGeometry>::type, multi_polygon_tag
         >::value
@@ -330,7 +339,9 @@ struct point_to_multigeometry<Point, MultiPolygon, Strategy, true>
                                     MultiPolygon const& multipolygon,
                                     Strategy const& strategy)
     {
-        if (geometry::covered_by(point, multipolygon))
+        // TODO: pass strategy
+        if (within::covered_by_point_geometry(point, multipolygon,
+                                              strategy.get_point_in_geometry_strategy()))
         {
             return 0;
         }

@@ -20,7 +20,6 @@ Phil Endecott and Frank Gennari
 #include <limits>
 #include <functional>
 #include <boost/static_assert.hpp>
-#include <boost/serialization/static_warning.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/sort/spreadsort/detail/constants.hpp>
 #include <boost/sort/spreadsort/detail/spreadsort_common.hpp>
@@ -251,9 +250,9 @@ namespace spreadsort {
         //don't sort unless there are at least two items to Compare
         if (count < 2)
           continue;
-        //using std::sort if its worst-case is better
+        //using boost::sort::pdqsort if its worst-case is better
         if (count < max_size)
-          std::sort(lastPos, bin_cache[u],
+          boost::sort::pdqsort(lastPos, bin_cache[u],
               offset_less_than<Data_type, Unsigned_char_type>(char_offset + 1));
         else
           string_sort_rec<RandomAccessIter, Unsigned_char_type>(lastPos,
@@ -362,9 +361,9 @@ namespace spreadsort {
         //don't sort unless there are at least two items to Compare
         if (count < 2)
           continue;
-        //using std::sort if its worst-case is better
+        //using boost::sort::pdqsort if its worst-case is better
         if (count < max_size)
-          std::sort(lastPos, bin_cache[u], offset_greater_than<Data_type,
+          boost::sort::pdqsort(lastPos, bin_cache[u], offset_greater_than<Data_type,
                     Unsigned_char_type>(char_offset + 1));
         else
           reverse_string_sort_rec<RandomAccessIter, Unsigned_char_type>
@@ -464,9 +463,9 @@ namespace spreadsort {
         //don't sort unless there are at least two items to Compare
         if (count < 2)
           continue;
-        //using std::sort if its worst-case is better
+        //using boost::sort::pdqsort if its worst-case is better
         if (count < max_size)
-          std::sort(lastPos, bin_cache[u], offset_char_less_than<Data_type,
+          boost::sort::pdqsort(lastPos, bin_cache[u], offset_char_less_than<Data_type,
                     Get_char, Get_length>(char_offset + 1));
         else
           string_sort_rec<RandomAccessIter, Unsigned_char_type, Get_char,
@@ -565,9 +564,9 @@ namespace spreadsort {
         //don't sort unless there are at least two items to Compare
         if (count < 2)
           continue;
-        //using std::sort if its worst-case is better
+        //using boost::sort::pdqsort if its worst-case is better
         if (count < max_size)
-          std::sort(lastPos, bin_cache[u], comp);
+          boost::sort::pdqsort(lastPos, bin_cache[u], comp);
         else
           string_sort_rec<RandomAccessIter, Unsigned_char_type, Get_char,
                           Get_length, Compare>
@@ -670,9 +669,9 @@ namespace spreadsort {
         //don't sort unless there are at least two items to Compare
         if (count < 2)
           continue;
-        //using std::sort if its worst-case is better
+        //using boost::sort::pdqsort if its worst-case is better
         if (count < max_size)
-          std::sort(lastPos, bin_cache[u], comp);
+          boost::sort::pdqsort(lastPos, bin_cache[u], comp);
         else
           reverse_string_sort_rec<RandomAccessIter, Unsigned_char_type,
                                   Get_char, Get_length, Compare>
@@ -700,9 +699,9 @@ namespace spreadsort {
     string_sort(RandomAccessIter first, RandomAccessIter last,
                 Unsigned_char_type)
     {
-      //Warning that we're using std::sort, even though string_sort was called
-      BOOST_STATIC_WARNING( sizeof(Unsigned_char_type) <= 2 );
-      std::sort(first, last);
+      //Warning that we're using boost::sort::pdqsort, even though string_sort was called
+      BOOST_STATIC_ASSERT( sizeof(Unsigned_char_type) <= 2 );
+      boost::sort::pdqsort(first, last);
     }
 
     //Holds the bin vector and makes the initial recursive call
@@ -726,9 +725,9 @@ namespace spreadsort {
     {
       typedef typename std::iterator_traits<RandomAccessIter>::value_type
         Data_type;
-      //Warning that we're using std::sort, even though string_sort was called
-      BOOST_STATIC_WARNING( sizeof(Unsigned_char_type) <= 2 );
-      std::sort(first, last, std::greater<Data_type>());
+      //Warning that we're using boost::sort::pdqsort, even though string_sort was called
+      BOOST_STATIC_ASSERT( sizeof(Unsigned_char_type) <= 2 );
+      boost::sort::pdqsort(first, last, std::greater<Data_type>());
     }
 
     //Holds the bin vector and makes the initial recursive call
@@ -752,9 +751,9 @@ namespace spreadsort {
     string_sort(RandomAccessIter first, RandomAccessIter last,
                 Get_char get_character, Get_length length, Unsigned_char_type)
     {
-      //Warning that we're using std::sort, even though string_sort was called
-      BOOST_STATIC_WARNING( sizeof(Unsigned_char_type) <= 2 );
-      std::sort(first, last);
+      //Warning that we're using boost::sort::pdqsort, even though string_sort was called
+      BOOST_STATIC_ASSERT( sizeof(Unsigned_char_type) <= 2 );
+      boost::sort::pdqsort(first, last);
     }
 
     //Holds the bin vector and makes the initial recursive call
@@ -780,9 +779,9 @@ namespace spreadsort {
     string_sort(RandomAccessIter first, RandomAccessIter last,
         Get_char get_character, Get_length length, Compare comp, Unsigned_char_type)
     {
-      //Warning that we're using std::sort, even though string_sort was called
-      BOOST_STATIC_WARNING( sizeof(Unsigned_char_type) <= 2 );
-      std::sort(first, last, comp);
+      //Warning that we're using boost::sort::pdqsort, even though string_sort was called
+      BOOST_STATIC_ASSERT( sizeof(Unsigned_char_type) <= 2 );
+      boost::sort::pdqsort(first, last, comp);
     }
 
     //Holds the bin vector and makes the initial recursive call
@@ -807,9 +806,9 @@ namespace spreadsort {
     reverse_string_sort(RandomAccessIter first, RandomAccessIter last,
         Get_char get_character, Get_length length, Compare comp, Unsigned_char_type)
     {
-      //Warning that we're using std::sort, even though string_sort was called
-      BOOST_STATIC_WARNING( sizeof(Unsigned_char_type) <= 2 );
-      std::sort(first, last, comp);
+      //Warning that we're using boost::sort::pdqsort, even though string_sort was called
+      BOOST_STATIC_ASSERT( sizeof(Unsigned_char_type) <= 2 );
+      boost::sort::pdqsort(first, last, comp);
     }
   }
 }

@@ -299,6 +299,8 @@ static fiber_activation_record * create_fiber1( StackAlloc && salloc, Fn && fn) 
             reinterpret_cast< uintptr_t >( sctx.sp) - static_cast< uintptr_t >( sctx.size) );
     // create user-context
     if ( BOOST_UNLIKELY( 0 != ::getcontext( & record->uctx) ) ) {
+        record->~capture_t();
+        salloc.deallocate( sctx);
         throw std::system_error(
                 std::error_code( errno, std::system_category() ),
                 "getcontext() failed");
@@ -332,6 +334,8 @@ static fiber_activation_record * create_fiber2( preallocated palloc, StackAlloc 
             reinterpret_cast< uintptr_t >( palloc.sctx.sp) - static_cast< uintptr_t >( palloc.sctx.size) );
     // create user-context
     if ( BOOST_UNLIKELY( 0 != ::getcontext( & record->uctx) ) ) {
+        record->~capture_t();
+        salloc.deallocate( palloc.sctx);
         throw std::system_error(
                 std::error_code( errno, std::system_category() ),
                 "getcontext() failed");
@@ -478,6 +482,8 @@ public:
         return ptr_ < other.ptr_;
     }
 
+    #if !defined(BOOST_EMBTC)
+    
     template< typename charT, class traitsT >
     friend std::basic_ostream< charT, traitsT > &
     operator<<( std::basic_ostream< charT, traitsT > & os, fiber const& other) {
@@ -488,11 +494,33 @@ public:
         }
     }
 
+    #else
+    
+    template< typename charT, class traitsT >
+    friend std::basic_ostream< charT, traitsT > &
+    operator<<( std::basic_ostream< charT, traitsT > & os, fiber const& other);
+
+    #endif
+
     void swap( fiber & other) noexcept {
         std::swap( ptr_, other.ptr_);
     }
 };
 
+#if defined(BOOST_EMBTC)
+
+    template< typename charT, class traitsT >
+    inline std::basic_ostream< charT, traitsT > &
+    operator<<( std::basic_ostream< charT, traitsT > & os, fiber const& other) {
+        if ( nullptr != other.ptr_) {
+            return os << other.ptr_;
+        } else {
+            return os << "{not-a-context}";
+        }
+    }
+
+#endif
+    
 inline
 void swap( fiber & l, fiber & r) noexcept {
     l.swap( r);

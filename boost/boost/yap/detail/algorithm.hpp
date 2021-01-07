@@ -98,7 +98,7 @@ namespace boost { namespace yap { namespace detail {
     template<
         typename T,
         typename U = typename detail::partial_decay<T>::type,
-        bool AddRValueRef = std::is_same<T, U>{} && !std::is_const<U>{}>
+        bool AddRValueRef = std::is_same<T, U>::value && !std::is_const<U>::value>
     struct operand_value_type_phase_1;
 
     template<typename T, typename U>
@@ -160,9 +160,9 @@ namespace boost { namespace yap { namespace detail {
         template<expr_kind, class> class ExprTemplate,
         typename T,
         typename U = typename operand_value_type_phase_1<T>::type,
-        bool RemoveRefs = std::is_rvalue_reference<U>{},
+        bool RemoveRefs = std::is_rvalue_reference<U>::value,
         bool IsExpr = is_expr<T>::value,
-        bool IsLRef = std::is_lvalue_reference<T>{}>
+        bool IsLRef = std::is_lvalue_reference<T>::value>
     struct operand_type;
 
     template<
@@ -226,7 +226,7 @@ namespace boost { namespace yap { namespace detail {
     struct make_operand
     {
         template<typename U>
-        auto operator()(U && u)
+        constexpr auto operator()(U && u)
         {
             return T{static_cast<U &&>(u)};
         }
@@ -235,13 +235,13 @@ namespace boost { namespace yap { namespace detail {
     template<template<expr_kind, class> class ExprTemplate, typename Tuple>
     struct make_operand<ExprTemplate<expr_kind::expr_ref, Tuple>>
     {
-        auto operator()(ExprTemplate<expr_kind::expr_ref, Tuple> expr)
+        constexpr auto operator()(ExprTemplate<expr_kind::expr_ref, Tuple> expr)
         {
             return expr;
         }
 
         template<typename U>
-        auto operator()(U && u)
+        constexpr auto operator()(U && u)
         {
             return ExprTemplate<expr_kind::expr_ref, Tuple>{
                 Tuple{std::addressof(u)}};
@@ -257,7 +257,7 @@ namespace boost { namespace yap { namespace detail {
         typename T,
         typename U,
         bool TNonExprUExpr = !is_expr<T>::value && is_expr<U>::value,
-        bool ULvalueRef = std::is_lvalue_reference<U>{}>
+        bool ULvalueRef = std::is_lvalue_reference<U>::value>
     struct free_binary_op_result;
 
     template<

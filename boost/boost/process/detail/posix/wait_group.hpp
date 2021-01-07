@@ -16,21 +16,30 @@
 #include <system_error>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 namespace boost { namespace process { namespace detail { namespace posix {
 
 inline void wait(const group_handle &p, std::error_code &ec) noexcept
 {
     pid_t ret;
-    int status;
+    siginfo_t  status;
 
     do
     {
-        ret = ::waitpid(-p.grp, &status, 0);
-    } 
-    while (((ret == -1) && (errno == EINTR)) || (ret != -1 && !WIFEXITED(status) && !WIFSIGNALED(status)));
+        ret = ::waitpid(-p.grp, &status.si_status, 0);
+        if (ret == -1)
+        {
+            ec = get_last_error();
+            return; 
+        }
 
-    if (ret == -1)
+        //ECHILD --> no child processes left.
+        ret = ::waitid(P_PGID, p.grp, &status, WEXITED | WNOHANG);
+    } 
+    while ((ret != -1) || (errno != ECHILD));
+   
+    if (errno != ECHILD)
         ec = boost::process::detail::get_last_error();
     else
         ec.clear();
@@ -49,31 +58,34 @@ inline bool wait_until(
         const std::chrono::time_point<Clock, Duration>& time_out,
         std::error_code & ec) noexcept
 {
-    pid_t ret;
-    int status;
 
-    bool timed_out;
+    ::siginfo_t siginfo;
 
-    do
+    bool timed_out = false;
+    int ret;
+
+    ::timespec sleep_interval;
+    sleep_interval.tv_sec = 0;
+    sleep_interval.tv_nsec = 100000000;
+
+
+    while (!(timed_out = (Clock::now() > time_out)))
     {
-        ret = ::waitpid(-p.grp, &status, WNOHANG);
-        if (ret == 0)
+        ret = ::waitid(P_PGID, p.grp, &siginfo, WEXITED | WSTOPPED | WNOHANG);
+        if (ret == -1)
         {
-            timed_out = Clock::now() >= time_out;
-            if (timed_out)
-                return false;
+            if ((errno == ECHILD) || (errno == ESRCH))
+            {
+                ec.clear();
+                return true;
+            }
+            ec = boost::process::detail::get_last_error();
+            return false;
         }
+        //we can wait, because unlike in the wait_for_exit, we have no race condition regarding eh exit code.
+        ::nanosleep(&sleep_interval, nullptr);
     }
-    while ((ret == 0) ||
-          (((ret == -1) && errno == EINTR) ||
-           ((ret != -1) && !WIFEXITED(status) && !WIFSIGNALED(status))));
-
-    if (ret == -1)
-        ec = boost::process::detail::get_last_error();
-    else
-        ec.clear();
-
-    return true;
+    return !timed_out;
 }
 
 template< class Clock, class Duration >

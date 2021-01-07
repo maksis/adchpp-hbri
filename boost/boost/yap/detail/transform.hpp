@@ -30,7 +30,7 @@ namespace boost { namespace yap { namespace detail {
     template<int I, typename... Ts>
     using nth_element = typename nth_element_impl<I, Ts...>::type;
 
-    template<typename T, bool RemoveRefs = std::is_rvalue_reference<T>{}>
+    template<typename T, bool RemoveRefs = std::is_rvalue_reference<T>::value>
     struct rvalue_ref_to_value;
 
     template<typename T>
@@ -73,7 +73,7 @@ namespace boost { namespace yap { namespace detail {
     {
         using tuple_t = hana::tuple<rvalue_ref_to_value_t<PlaceholderArgs>...>;
 
-        placeholder_transform_t(PlaceholderArgs &&... args) :
+        constexpr placeholder_transform_t(PlaceholderArgs &&... args) :
             placeholder_args_(static_cast<PlaceholderArgs &&>(args)...)
         {}
 
@@ -98,7 +98,7 @@ namespace boost { namespace yap { namespace detail {
     {
         using tuple_t = hana::tuple<rvalue_ref_to_value_t<PlaceholderArgs>...>;
 
-        evaluation_transform_t(PlaceholderArgs &&... args) :
+        constexpr evaluation_transform_t(PlaceholderArgs &&... args) :
             placeholder_args_(static_cast<PlaceholderArgs &&>(args)...)
         {}
 
@@ -331,7 +331,8 @@ namespace boost { namespace yap { namespace detail {
     struct default_transform<false, false, false>
     {
         template<typename Expr, typename TransformTuple>
-        decltype(auto) operator()(Expr && expr, TransformTuple transforms) const
+        constexpr decltype(auto)
+        operator()(Expr && expr, TransformTuple transforms) const
         {
             return transform_nonterminal(
                 expr, std::move(expr.elements), transforms);
@@ -367,7 +368,7 @@ namespace boost { namespace yap { namespace detail {
             // No next transform exists; use the default transform.
             constexpr expr_kind kind = remove_cv_ref_t<Expr>::kind;
             return default_transform<
-                std::is_lvalue_reference<Expr>{},
+                std::is_lvalue_reference<Expr>::value,
                 kind == expr_kind::terminal,
                 Strict>{}(static_cast<Expr &&>(expr), transforms);
         }
@@ -433,7 +434,7 @@ namespace boost { namespace yap { namespace detail {
     };
 
     template<typename T>
-    decltype(auto) terminal_value(T && x)
+    constexpr decltype(auto) terminal_value(T && x)
     {
         return value_impl<true>(static_cast<T &&>(x));
     }

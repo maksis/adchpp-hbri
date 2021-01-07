@@ -4,9 +4,8 @@
 // Copyright (c) 2008-2014 Bruno Lalande, Paris, France.
 // Copyright (c) 2009-2014 Mateusz Loskot, London, UK.
 
-// This file was modified by Oracle on 2014.
-// Modifications copyright (c) 2014, Oracle and/or its affiliates.
-
+// This file was modified by Oracle on 2014-2020.
+// Modifications copyright (c) 2014-2020, Oracle and/or its affiliates.
 // Contributed and/or modified by Menelaos Karavelas, on behalf of Oracle
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
@@ -21,7 +20,9 @@
 #define BOOST_GEOMETRY_ALGORITHMS_APPEND_HPP
 
 
-#include <boost/range.hpp>
+#include <boost/range/begin.hpp>
+#include <boost/range/end.hpp>
+#include <boost/range/value_type.hpp>
 
 #include <boost/variant/apply_visitor.hpp>
 #include <boost/variant/static_visitor.hpp>
@@ -91,19 +92,23 @@ template <typename Polygon, typename Point>
 struct point_to_polygon
 {
     typedef typename ring_type<Polygon>::type ring_type;
+    typedef typename ring_return_type<Polygon>::type exterior_ring_type;
+    typedef typename interior_return_type<Polygon>::type interior_ring_range_type;
 
     static inline void apply(Polygon& polygon, Point const& point,
                 int ring_index, int = 0)
     {
         if (ring_index == -1)
         {
+            exterior_ring_type ext_ring = exterior_ring(polygon);
             append_point<ring_type, Point>::apply(
-                        exterior_ring(polygon), point);
+                        ext_ring, point);
         }
         else if (ring_index < int(num_interior_rings(polygon)))
         {
+            interior_ring_range_type int_rings = interior_rings(polygon);
             append_point<ring_type, Point>::apply(
-                        range::at(interior_rings(polygon), ring_index), point);
+                        range::at(int_rings, ring_index), point);
         }
     }
 };
@@ -113,19 +118,23 @@ template <typename Polygon, typename Range>
 struct range_to_polygon
 {
     typedef typename ring_type<Polygon>::type ring_type;
+    typedef typename ring_return_type<Polygon>::type exterior_ring_type;
+    typedef typename interior_return_type<Polygon>::type interior_ring_range_type;
 
     static inline void apply(Polygon& polygon, Range const& range,
                 int ring_index, int = 0)
     {
         if (ring_index == -1)
         {
+            exterior_ring_type ext_ring = exterior_ring(polygon);
             append_range<ring_type, Range>::apply(
-                        exterior_ring(polygon), range);
+                        ext_ring, range);
         }
         else if (ring_index < int(num_interior_rings(polygon)))
         {
+            interior_ring_range_type int_rings = interior_rings(polygon);
             append_range<ring_type, Range>::apply(
-                        range::at(interior_rings(polygon), ring_index), range);
+                        range::at(int_rings, ring_index), range);
         }
     }
 };
