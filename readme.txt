@@ -1,3 +1,5 @@
+= Windows builds are available at: http://builds.airdcpp.net/adchpp/
+
 = ADCH++ - A hub software for ADC
 
 == Introduction
