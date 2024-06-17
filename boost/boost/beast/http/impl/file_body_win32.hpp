@@ -13,7 +13,6 @@
 #if BOOST_BEAST_USE_WIN32_FILE
 
 #include <boost/beast/core/async_base.hpp>
-#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/buffers_range.hpp>
 #include <boost/beast/core/detail/clamp.hpp>
 #include <boost/beast/core/detail/is_invocable.hpp>
@@ -94,7 +93,7 @@ struct basic_file_body<file_win32>
         std::uint64_t
         size() const
         {
-            return size_;
+            return last_ - first_;
         }
 
         void
@@ -105,6 +104,9 @@ struct basic_file_body<file_win32>
 
         void
         reset(file_win32&& file, error_code& ec);
+
+        void
+        seek(std::uint64_t offset, error_code& ec);
     };
 
     //--------------------------------------------------------------------------
@@ -124,9 +126,9 @@ struct basic_file_body<file_win32>
                 basic_file_body<file_win32>, Fields>& sr,
             error_code& ec);
 
-        value_type& body_;  // The body we are reading from
-        std::uint64_t pos_; // The current position in the file
-        char buf_[4096];    // Small buffer for reading
+        value_type& body_;                       // The body we are reading from
+        std::uint64_t pos_;                      // The current position in the file
+        char buf_[BOOST_BEAST_FILE_BUFFER_SIZE]; // Small buffer for reading
 
     public:
         using const_buffers_type =
@@ -162,7 +164,7 @@ struct basic_file_body<file_win32>
                 return boost::none;
             if (nread == 0)
             {
-                ec = error::short_read;
+                BOOST_BEAST_ASSIGN_EC(ec, error::short_read);
                 return boost::none;
             }
             BOOST_ASSERT(nread != 0);
@@ -284,9 +286,27 @@ reset(file_win32&& file, error_code& ec)
             close();
             return;
         }
-        first_ = 0;
+
+        first_ = file_.pos(ec);
+        if(ec)
+        {
+            close();
+            return;
+        }
+
         last_ = size_;
     }
+}
+
+
+inline
+void
+basic_file_body<file_win32>::
+value_type::
+seek(std::uint64_t offset, error_code& ec)
+{
+  first_ = offset;
+  file_.seek(offset, ec);
 }
 
 //------------------------------------------------------------------------------
@@ -434,7 +454,7 @@ public:
             static_cast<boost::winapi::DWORD_>(
             (std::min<std::uint64_t>)(
                 (std::min<std::uint64_t>)(w.body_.last_ - w.pos_, sr_.limit()),
-                (std::numeric_limits<boost::winapi::DWORD_>::max)()));
+                (std::numeric_limits<boost::winapi::INT_>::max)() - 1));
         net::windows::overlapped_ptr overlapped{
             sock_.get_executor(), std::move(*this)};
         // Note that we have moved *this, so we cannot access
@@ -471,7 +491,7 @@ public:
     {
         if(ec)
         {
-            ec = make_win32_error(ec);
+            BOOST_BEAST_ASSIGN_EC(ec, make_win32_error(ec));
         }
         else if(! ec && ! header_)
         {
@@ -562,7 +582,7 @@ write_some(
         static_cast<boost::winapi::DWORD_>(
         (std::min<std::uint64_t>)(
             (std::min<std::uint64_t>)(w.body_.last_ - w.pos_, sr.limit()),
-            (std::numeric_limits<boost::winapi::DWORD_>::max)()));
+            (std::numeric_limits<boost::winapi::INT_>::max)() - 1));
     auto const bSuccess = ::TransmitFile(
         sock.native_handle(),
         w.body_.file_.native_handle(),
@@ -573,8 +593,8 @@ write_some(
         0);
     if(! bSuccess)
     {
-        ec = detail::make_win32_error(
-            boost::winapi::GetLastError());
+        BOOST_BEAST_ASSIGN_EC(ec, detail::make_win32_error(
+            boost::winapi::GetLastError()));
         return 0;
     }
     w.pos_ += nNumberOfBytesToWrite;

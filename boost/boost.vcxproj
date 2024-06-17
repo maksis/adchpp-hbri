@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{ABC71AA5-A253-43D5-9AFC-B73ED4434A61}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <NMakeOutput>boost.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions>NDEBUG;BOOST_ALL_NO_LIB;BOOST_ALL_DYN_LINK;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <IncludePath>$(SolutionDir)boost;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <NMakeOutput>boost.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <NMakeOutput>boost.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <NMakeOutput>boost.exe</NMakeOutput>
+    <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="libs\date_time\src\gregorian\date_generators.cpp" />
+    <ClCompile Include="libs\date_time\src\gregorian\gregorian_types.cpp" />
+    <ClCompile Include="libs\date_time\src\gregorian\greg_month.cpp" />
+    <ClCompile Include="libs\date_time\src\gregorian\greg_weekday.cpp" />
+    <ClCompile Include="libs\date_time\src\posix_time\posix_time_types.cpp" />
+    <ClCompile Include="libs\locale\src\encoding\codepage.cpp" />
+    <ClCompile Include="libs\locale\src\shared\date_time.cpp" />
+    <ClCompile Include="libs\locale\src\shared\format.cpp" />
+    <ClCompile Include="libs\locale\src\shared\formatting.cpp" />
+    <ClCompile Include="libs\locale\src\shared\generator.cpp" />
+    <ClCompile Include="libs\locale\src\shared\ids.cpp" />
+    <ClCompile Include="libs\locale\src\shared\localization_backend.cpp" />
+    <ClCompile Include="libs\locale\src\shared\message.cpp" />
+    <ClCompile Include="libs\locale\src\shared\mo_lambda.cpp" />
+    <ClCompile Include="libs\locale\src\std\codecvt.cpp" />
+    <ClCompile Include="libs\locale\src\std\collate.cpp" />
+    <ClCompile Include="libs\locale\src\std\converter.cpp" />
+    <ClCompile Include="libs\locale\src\std\numeric.cpp" />
+    <ClCompile Include="libs\locale\src\std\std_backend.cpp" />
+    <ClCompile Include="libs\locale\src\util\codecvt_converter.cpp" />
+    <ClCompile Include="libs\locale\src\util\default_locale.cpp" />
+    <ClCompile Include="libs\locale\src\util\gregorian.cpp" />
+    <ClCompile Include="libs\locale\src\util\info.cpp" />
+    <ClCompile Include="libs\locale\src\util\locale_data.cpp" />
+    <ClCompile Include="libs\locale\src\win32\collate.cpp" />
+    <ClCompile Include="libs\locale\src\win32\converter.cpp" />
+    <ClCompile Include="libs\locale\src\win32\lcid.cpp" />
+    <ClCompile Include="libs\locale\src\win32\numeric.cpp" />
+    <ClCompile Include="libs\locale\src\win32\win_backend.cpp" />
+    <ClCompile Include="libs\system\src\error_code.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="libs\date_time\src\gregorian\greg_names.hpp" />
+    <ClInclude Include="libs\locale\src\encoding\conv.hpp" />
+    <ClInclude Include="libs\locale\src\encoding\iconv_codepage.ipp" />
+    <ClInclude Include="libs\locale\src\encoding\uconv_codepage.ipp" />
+    <ClInclude Include="libs\locale\src\encoding\wconv_codepage.ipp" />
+    <ClInclude Include="libs\locale\src\shared\ios_prop.hpp" />
+    <ClInclude Include="libs\locale\src\shared\mo_hash.hpp" />
+    <ClInclude Include="libs\locale\src\shared\mo_lambda.hpp" />
+    <ClInclude Include="libs\locale\src\std\all_generator.hpp" />
+    <ClInclude Include="libs\locale\src\std\std_backend.hpp" />
+    <ClInclude Include="libs\locale\src\util\gregorian.hpp" />
+    <ClInclude Include="libs\locale\src\util\iconv.hpp" />
+    <ClInclude Include="libs\locale\src\util\locale_data.hpp" />
+    <ClInclude Include="libs\locale\src\util\numeric.hpp" />
+    <ClInclude Include="libs\locale\src\util\timezone.hpp" />
+    <ClInclude Include="libs\locale\src\win32\all_generator.hpp" />
+    <ClInclude Include="libs\locale\src\win32\api.hpp" />
+    <ClInclude Include="libs\locale\src\win32\lcid.hpp" />
+    <ClInclude Include="libs\locale\src\win32\win_backend.hpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -10,21 +10,23 @@
 #ifndef BOOST_JSON_DETAIL_SHARED_RESOURCE_HPP
 #define BOOST_JSON_DETAIL_SHARED_RESOURCE_HPP
 
+#include <boost/container/pmr/memory_resource.hpp>
 #include <boost/json/memory_resource.hpp>
 #include <atomic>
 #include <utility>
 
-BOOST_JSON_NS_BEGIN
+namespace boost {
+namespace json {
 namespace detail {
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4275) // non dll-interface class used as base for dll-interface class 
+#pragma warning(disable: 4275) // non dll-interface class used as base for dll-interface class
 #endif
 
 struct BOOST_SYMBOL_VISIBLE
     shared_resource
-    : memory_resource
+    : container::pmr::memory_resource
 {
     BOOST_JSON_DECL
     shared_resource();
@@ -80,6 +82,7 @@ public:
 #endif
 
 } // detail
-BOOST_JSON_NS_END
+} // namespace json
+} // namespace boost
 
 #endif

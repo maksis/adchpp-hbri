@@ -10,7 +10,6 @@
 #ifndef BOOST_BEAST_DETAIL_IMPL_READ_HPP
 #define BOOST_BEAST_DETAIL_IMPL_READ_HPP
 
-#include <boost/beast/core/bind_handler.hpp>
 #include <boost/beast/core/async_base.hpp>
 #include <boost/beast/core/flat_static_buffer.hpp>
 #include <boost/beast/core/read_size.hpp>
@@ -96,7 +95,7 @@ public:
                 BOOST_ASIO_CORO_YIELD
                 s_.async_read_some(
                     b_.prepare(0), std::move(*this));
-                ec = ec_;
+                BOOST_BEAST_ASSIGN_EC(ec, ec_);
             }
             this->complete_now(ec, total_);
         }

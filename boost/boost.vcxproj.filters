@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="libs\date_time\src\gregorian\date_generators.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\date_time\src\gregorian\greg_month.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\date_time\src\gregorian\greg_weekday.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\date_time\src\gregorian\gregorian_types.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\date_time\src\posix_time\posix_time_types.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\win32\collate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\win32\converter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\win32\lcid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\win32\numeric.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\win32\win_backend.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\util\codecvt_converter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\util\default_locale.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\util\gregorian.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\util\info.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\util\locale_data.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\std\codecvt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\std\collate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\std\converter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\std\numeric.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\std\std_backend.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\shared\date_time.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\shared\format.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\shared\formatting.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\shared\generator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\shared\ids.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\shared\localization_backend.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\shared\message.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\shared\mo_lambda.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\locale\src\encoding\codepage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\system\src\error_code.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="libs\date_time\src\gregorian\greg_names.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\win32\all_generator.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\win32\api.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\win32\lcid.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\win32\win_backend.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\util\gregorian.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\util\iconv.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\util\locale_data.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\util\numeric.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\util\timezone.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\std\all_generator.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\std\std_backend.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\shared\ios_prop.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\shared\mo_hash.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\shared\mo_lambda.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\encoding\conv.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\encoding\iconv_codepage.ipp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\encoding\uconv_codepage.ipp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\locale\src\encoding\wconv_codepage.ipp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
