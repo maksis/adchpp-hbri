@@ -2,7 +2,7 @@
 echo ADCH++ Certifcation Generator
 echo.
 echo This script requires the newest Win32-OpenSSL binaries to be installed.
-echo Available from http://www.slproweb.com/products/Win32OpenSSL.html
+echo Available from https://slproweb.com/products/Win32OpenSSL.html
 echo.
 
 set SSL=C:\OpenSSL-Win32\bin\openssl.exe
@@ -15,6 +15,11 @@ if not exist %SSL% (
 if not exist %SSL% (
    echo OpenSSL isn't found in %SSL%
    set SSL="%PROGRAMFILES(X86)%\OpenSSL-Win32\bin\openssl.exe"
+)
+
+if not exist %SSL% (
+   echo OpenSSL isn't found in %SSL%
+   set SSL="%PROGRAMFILES%\OpenSSL-Win64\bin\openssl.exe"
 )
 
 if not exist %SSL% (

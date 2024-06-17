@@ -71,7 +71,9 @@ msvc_defs = {
 
 gcc_defs = {
 	# _BSD_SOURCE is for some int types in LuaSocket on Linux.
-	'common' : ['_REENTRANT', '_BSD_SOURCE'],
+	# _DEFAULT_SOURCE:
+	# https://sourceware.org/glibc/wiki/Release/2.20#Deprecation_of__BSD_SOURCE_and__SVID_SOURCE_feature_macros
+	'common' : ['_REENTRANT', '_BSD_SOURCE', '_DEFAULT_SOURCE'],
 	'debug' : ['_DEBUG'],
 	'release' : ['NDEBUG']
 }
@@ -254,9 +256,8 @@ if dev.env['systemboost']:
 
 else:
 	dev.boost_system = dev.build('boost/libs/system/src/')
-	dev.boost_locale = dev.build('boost/libs/locale/src/')
 
-	env.Append(LIBS = ['aboost_system', 'aboost_locale'])
+	env.Append(LIBS = ['aboost_system'])
 
 dev.adchpp = dev.build('adchpp/')
 

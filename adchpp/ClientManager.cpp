@@ -29,10 +29,12 @@
 #include "Encoder.h"
 #include "version.h"
 
+#include <codecvt>
+#include <locale>
+
 #include <boost/asio/ip/address.hpp>
 #include <boost/asio/ip/address_v4.hpp>
 #include <boost/asio/ip/address_v6.hpp>
-#include <boost/locale.hpp>
 
 #include <boost/range/algorithm/find.hpp>
 #include <boost/range/algorithm/find_if.hpp>
@@ -633,7 +635,7 @@ bool validateNickF(wchar_t c) { /// @todo lambda
 		return true;
 	}
 
-	static std::locale loc = boost::locale::generator().generate("");
+	static std::locale loc = locale();
 	return !std::isprint(c, loc);
 }
 
@@ -643,7 +645,8 @@ bool validateNick(const string& nick) {
 	}
 
 	// avoid impersonators
-	std::wstring nickW = boost::locale::conv::utf_to_utf<wchar_t>(nick);
+	std::wstring nickW =
+		std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(nick);
 	if(std::find_if(nickW.begin(), nickW.end(), validateNickF) != nickW.end()) {
 		return false;
 	}

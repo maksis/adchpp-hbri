@@ -110,24 +110,24 @@ static void uninit() {
 }
 
 static SERVICE_STATUS_HANDLE ssh = 0;
-static SERVICE_STATUS ss;
+static SERVICE_STATUS serviceStatus;
 
 void WINAPI handler(DWORD code) {
 	switch(code) {
 	case SERVICE_CONTROL_SHUTDOWN: // Fallthrough
 	case SERVICE_CONTROL_STOP:
 		if(core) {
-			ss.dwCurrentState = SERVICE_STOP_PENDING;
+			serviceStatus.dwCurrentState = SERVICE_STOP_PENDING;
 			core->shutdown();
 		} else {
-			ss.dwCurrentState = SERVICE_STOPPED;
+			serviceStatus.dwCurrentState = SERVICE_STOPPED;
 		}
 		break;
 	case SERVICE_CONTROL_INTERROGATE: break;
 	default: ; //LOG(modName, "Unknown service handler code " + Util::toString(code));
 	}
 
-	if(!SetServiceStatus(ssh, &ss)) {
+	if(!SetServiceStatus(ssh, &serviceStatus)) {
 		//LOGERROR("handler::SetServiceStatus");
 	}
 }
@@ -141,14 +141,14 @@ static void WINAPI serviceStart(DWORD, TCHAR* argv[]) {
 		return;
 	}
 
-	ss.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
-	ss.dwCurrentState = SERVICE_START_PENDING;
-	ss.dwControlsAccepted = SERVICE_ACCEPT_SHUTDOWN | SERVICE_ACCEPT_STOP;
-	ss.dwWin32ExitCode = NO_ERROR;
-	ss.dwCheckPoint = 0;
-	ss.dwWaitHint = 10 * 1000;
+	serviceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+	serviceStatus.dwCurrentState = SERVICE_START_PENDING;
+	serviceStatus.dwControlsAccepted = SERVICE_ACCEPT_SHUTDOWN | SERVICE_ACCEPT_STOP;
+	serviceStatus.dwWin32ExitCode = NO_ERROR;
+	serviceStatus.dwCheckPoint = 0;
+	serviceStatus.dwWaitHint = 10 * 1000;
 
-	if(!SetServiceStatus(ssh, &ss)) {
+	if(!SetServiceStatus(ssh, &serviceStatus)) {
 		//LOGERROR("SetServiceStatus");
 		uninit();
 		return;
@@ -158,22 +158,22 @@ static void WINAPI serviceStart(DWORD, TCHAR* argv[]) {
 		core = Core::create(configPath);
 
 		init();
-	} catch(const adchpp::Exception& e) {
+	} catch(const adchpp::Exception&) {
 		//LOG(modName, "Failed to start: " + e.getError());
 	}
 
-	ss.dwCurrentState = SERVICE_RUNNING;
-	SetServiceStatus(ssh, &ss);
+	serviceStatus.dwCurrentState = SERVICE_RUNNING;
+	SetServiceStatus(ssh, &serviceStatus);
 
 	try {
 		core->run();
-	} catch(const Exception& e) {
+	} catch(const Exception&) {
 		//LOG(modName, "ADCH++ startup failed because: " + e.getError());
 	}
 
-	ss.dwCurrentState = SERVICE_STOPPED;
+	serviceStatus.dwCurrentState = SERVICE_STOPPED;
 
-	if(!SetServiceStatus(ssh, &ss)) {
+	if(!SetServiceStatus(ssh, &serviceStatus)) {
 		//LOGERROR("SetServiceStatus");
 		uninit();
 		return;

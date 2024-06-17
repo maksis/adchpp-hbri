@@ -60,7 +60,7 @@ if 'HAVE_OPENSSL' in env['CPPDEFINES']:
 for i, source in enumerate(sources):
 	if source.find("version.cpp") != -1:
 		rev = ['ADCHPP_REVISION=' + getRevision(env)]
-		sources[i] = env.SharedObject(source, CPPDEFINES=env['CPPDEFINES'] + rev)
+		sources[i] = env.SharedObject(source, CPPDEFINES=list(env['CPPDEFINES']) + rev)
 
 headers=dev.get_sources(source_path, "*.h")
 
