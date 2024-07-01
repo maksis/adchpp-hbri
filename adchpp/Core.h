@@ -46,7 +46,7 @@ public:
 	ADCHPP_DLL const std::string &getConfigPath() const;
 
 	/** execute a function asynchronously */
-	ADCHPP_DLL void addJob(const Callback& callback) throw();
+	ADCHPP_DLL void addJob(const Callback& callback) noexcept;
 
 	/** execute a function after the specified amount of time
 	* @param msec milliseconds

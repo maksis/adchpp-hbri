@@ -45,12 +45,12 @@ public:
 	typedef EntityMap::iterator EntityIter;
 
 	/** @return SID of entity or AdcCommand::INVALID_SID if not found */
-	ADCHPP_DLL uint32_t getSID(const std::string& nick) const throw();
+	ADCHPP_DLL uint32_t getSID(const std::string& nick) const noexcept;
 	/** @return SID of entity or AdcCommand::INVALID_SID if not found */
-	ADCHPP_DLL uint32_t getSID(const CID& cid) const throw();
+	ADCHPP_DLL uint32_t getSID(const CID& cid) const noexcept;
 
 	/** @return The entity associated with a certain SID, NULL if not found */
-	ADCHPP_DLL Entity* getEntity(uint32_t aSid) throw();
+	ADCHPP_DLL Entity* getEntity(uint32_t aSid) noexcept;
 
 	/** @return A new Bot instance in STATE_IDENTIFY; set CID, nick etc and call regBot */
 	ADCHPP_DLL Bot* createBot(const Bot::SendHandler& handler);
@@ -60,13 +60,13 @@ public:
 	 * Get a list of all currently connected clients. (Don't change it, it's non-const
 	 * so that you'll be able to get non-const clients out of it...)!!!)
 	 */
-	EntityMap& getEntities() throw() { return entities; }
+	EntityMap& getEntities() noexcept { return entities; }
 
 	/** Send a command to according to its type */
-	ADCHPP_DLL void send(const AdcCommand& cmd) throw();
+	ADCHPP_DLL void send(const AdcCommand& cmd) noexcept;
 
 	/** Send a buffer to all connected entities */
-	ADCHPP_DLL void sendToAll(const BufferPtr& buffer) throw();
+	ADCHPP_DLL void sendToAll(const BufferPtr& buffer) noexcept;
 
 	/** Send buffer to a single client regardless of type */
 	ADCHPP_DLL void sendTo(const BufferPtr& buffer, uint32_t to);
@@ -77,7 +77,7 @@ public:
 	 *
 	 * @param sendData Send ISUP & IINF.
 	 */
-	ADCHPP_DLL void enterIdentify(Entity& c, bool sendData) throw();
+	ADCHPP_DLL void enterIdentify(Entity& c, bool sendData) noexcept;
 
 	/**
 	 * Enter VERIFY state. Call this if you stop
@@ -86,7 +86,7 @@ public:
 	 * @param sendData Send GPA.
 	 * @return The random data that was sent to the client (if sendData was true, undefined otherwise).
 	 */
-	ADCHPP_DLL ByteVector enterVerify(Entity& c, bool sendData) throw();
+	ADCHPP_DLL ByteVector enterVerify(Entity& c, bool sendData) noexcept;
 
 	/**
 	 * Enter NORMAL state. Call this if you stop an INF of a password-less
@@ -97,23 +97,23 @@ public:
 	 *                   for password)
 	 * @return false if the client was disconnected
 	 */
-	ADCHPP_DLL bool enterNormal(Entity& c, bool sendData, bool sendOwnInf) throw();
+	ADCHPP_DLL bool enterNormal(Entity& c, bool sendData, bool sendOwnInf) noexcept;
 
 	/**
 	 * Do all SUP verifications and update client data. Call if you stop SUP but still want the default processing.
 	 */
-	ADCHPP_DLL bool verifySUP(Entity& c, AdcCommand& cmd) throw();
+	ADCHPP_DLL bool verifySUP(Entity& c, AdcCommand& cmd) noexcept;
 
 	/**
 	 * Do all INF verifications and update client data. Call if you stop INF but still want the default processing.
 	 */
-	ADCHPP_DLL bool verifyINF(Entity& c, AdcCommand& cmd) throw();
+	ADCHPP_DLL bool verifyINF(Entity& c, AdcCommand& cmd) noexcept;
 
 	/**
 	 * Verify nick on INF (check that its not a dupe etc...)
 	 * @return false if the client was disconnected
 	 */
-	ADCHPP_DLL bool verifyNick(Entity& c, const AdcCommand& cmd) throw();
+	ADCHPP_DLL bool verifyNick(Entity& c, const AdcCommand& cmd) noexcept;
 
 	/**
 	 * Verify password
@@ -131,12 +131,12 @@ public:
 	/**
 	 * Verify that IP is correct and replace any zero addresses.
 	 */
-	ADCHPP_DLL bool verifyIp(Client& c, AdcCommand& cmd, bool isHbriConn) throw();
+	ADCHPP_DLL bool verifyIp(Client& c, AdcCommand& cmd, bool isHbriConn) noexcept;
 
 	/**
 	 * Verify that CID is correct and corresponds to PID
 	 */
-	ADCHPP_DLL bool verifyCID(Entity& c, AdcCommand& cmd) throw();
+	ADCHPP_DLL bool verifyCID(Entity& c, AdcCommand& cmd) noexcept;
 
 	/**
 	 * Verify that there aren't too many sockets overflowing (indicates lack of bandwidth)
@@ -144,9 +144,9 @@ public:
 	ADCHPP_DLL bool verifyOverflow(Entity& c);
 
 	/** Update the state of c (this fires signalState as well) */
-	ADCHPP_DLL void setState(Entity& c, Entity::State newState) throw();
+	ADCHPP_DLL void setState(Entity& c, Entity::State newState) noexcept;
 
-	ADCHPP_DLL size_t getQueuedBytes() throw();
+	ADCHPP_DLL size_t getQueuedBytes() noexcept;
 
 	typedef SignalTraits<void (Entity&)> SignalConnected;
 	typedef SignalTraits<void (Entity&)> SignalReady;
@@ -213,25 +213,25 @@ private:
 	bool sendHBRI(Entity& c);
 	void maybeSend(Entity& c, const AdcCommand& cmd);
 
-	void removeLogins(Entity& c) throw();
-	void removeEntity(Entity& c, Util::Reason reason, const std::string &info) throw();
+	void removeLogins(Entity& c) noexcept;
+	void removeEntity(Entity& c, Util::Reason reason, const std::string &info) noexcept;
 
-	bool handle(AdcCommand::SUP, Entity& c, AdcCommand& cmd) throw();
-	bool handle(AdcCommand::INF, Entity& c, AdcCommand& cmd) throw();
-	bool handle(AdcCommand::TCP, Entity& c, AdcCommand& cmd) throw();
-	bool handleDefault(Entity& c, AdcCommand& cmd) throw();
+	bool handle(AdcCommand::SUP, Entity& c, AdcCommand& cmd) noexcept;
+	bool handle(AdcCommand::INF, Entity& c, AdcCommand& cmd) noexcept;
+	bool handle(AdcCommand::TCP, Entity& c, AdcCommand& cmd) noexcept;
+	bool handleDefault(Entity& c, AdcCommand& cmd) noexcept;
 
-	template<typename T> bool handle(T, Entity& c, AdcCommand& cmd) throw() { return handleDefault(c, cmd); }
+	template<typename T> bool handle(T, Entity& c, AdcCommand& cmd) noexcept { return handleDefault(c, cmd); }
 
-	void handleIncoming(const ManagedSocketPtr& sock) throw();
+	void handleIncoming(const ManagedSocketPtr& sock) noexcept;
 
-	void onConnected(Client&) throw();
-	void onReady(Client&) throw();
-	void onReceive(Entity&, AdcCommand&) throw();
-	void onBadLine(Client&, const std::string&) throw();
-	void onFailed(Client&, Util::Reason reason, const std::string &info) throw();
+	void onConnected(Client&) noexcept;
+	void onReady(Client&) noexcept;
+	void onReceive(Entity&, AdcCommand&) noexcept;
+	void onBadLine(Client&, const std::string&) noexcept;
+	void onFailed(Client&, Util::Reason reason, const std::string &info) noexcept;
 
-	void badState(Entity& c, const AdcCommand& cmd) throw();
+	void badState(Entity& c, const AdcCommand& cmd) noexcept;
 	/** send a fatal STA, a QUI with TL-1, then disconnect. */
 	void disconnect(Entity& c, Util::Reason reason, const std::string& info,
 		AdcCommand::Error error = AdcCommand::ERROR_PROTOCOL_GENERIC, const std::string& staParam = Util::emptyString, int aReconnectTime = -1);
@@ -244,7 +244,7 @@ private:
 	SignalState::Signal signalState_;
 	SignalDisconnected::Signal signalDisconnected_;
 
-	ClientManager(Core &core) throw();
+	ClientManager(Core &core) noexcept;
 	void onTimerSecond();
 };
 

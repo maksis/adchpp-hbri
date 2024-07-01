@@ -30,13 +30,13 @@ namespace adchpp {
 using namespace std;
 using namespace std::placeholders;
 
-Client* Client::create(ClientManager &cm, const ManagedSocketPtr& ms, uint32_t sid) throw() {
+Client* Client::create(ClientManager &cm, const ManagedSocketPtr& ms, uint32_t sid) noexcept {
 	Client* c = new Client(cm, sid);
 	c->setSocket(ms);
 	return c;
 }
 
-Client::Client(ClientManager &cm, uint32_t sid_) throw() :
+Client::Client(ClientManager &cm, uint32_t sid_) noexcept :
 Entity(cm, sid_),
 disconnecting(false),
 dataBytes(0)
@@ -71,7 +71,7 @@ namespace {
 	};
 }
 
-void Client::setSocket(const ManagedSocketPtr& aSocket) throw() {
+void Client::setSocket(const ManagedSocketPtr& aSocket) noexcept {
 	dcassert(!socket);
 	socket = aSocket;
 	socket->setConnectedHandler(Handler0<&Client::onConnected>(this));
@@ -80,15 +80,15 @@ void Client::setSocket(const ManagedSocketPtr& aSocket) throw() {
 	socket->setFailedHandler(Handler2<Util::Reason, std::string, &Client::onFailed>(this));
 }
 
-void Client::onConnected() throw() {
+void Client::onConnected() noexcept {
 	cm.onConnected(*this);
 }
 
-void Client::onReady() throw() {
+void Client::onReady() noexcept {
 	cm.onReady(*this);
 }
 
-void Client::onData(const BufferPtr& buf) throw() {
+void Client::onData(const BufferPtr& buf) noexcept {
 	uint8_t* data = buf->data();
 	size_t done = 0;
 	size_t len = buf->size();
@@ -157,7 +157,7 @@ void Client::onData(const BufferPtr& buf) throw() {
 	}
 }
 
-void Client::disconnect(Util::Reason reason, const std::string &info) throw() {
+void Client::disconnect(Util::Reason reason, const std::string &info) noexcept {
 	dcassert(socket);
 	if(!disconnecting) {
 		dcdebug("%s disconnecting because %d\n", AdcCommand::fromSID(getSID()).c_str(), reason);
@@ -166,7 +166,7 @@ void Client::disconnect(Util::Reason reason, const std::string &info) throw() {
 	}
 }
 
-void Client::onFailed(Util::Reason reason, const std::string &info) throw() {
+void Client::onFailed(Util::Reason reason, const std::string &info) noexcept {
 	cm.onFailed(*this, reason, info);
 	delete this;
 }

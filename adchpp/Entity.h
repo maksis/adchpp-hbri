@@ -84,7 +84,7 @@ public:
 	ADCHPP_DLL void setField(const char* name, const std::string& value);
 
 	/** Add any flags that have been updated to the AdcCommand (type etc is not set) */
-	ADCHPP_DLL bool getAllFields(AdcCommand& cmd) const throw();
+	ADCHPP_DLL bool getAllFields(AdcCommand& cmd) const noexcept;
 	ADCHPP_DLL const BufferPtr& getINF() const;
 
 	ADCHPP_DLL bool addSupports(uint32_t feature);
@@ -96,7 +96,7 @@ public:
 	ADCHPP_DLL bool removeClientSupport(uint32_t feature);
 
 	/** Remove supports for the protocol that wasn't used for connecting **/
-	ADCHPP_DLL void stripProtocolSupports() throw();
+	ADCHPP_DLL void stripProtocolSupports() noexcept;
 
 	ADCHPP_DLL const BufferPtr& getSUP() const;
 
@@ -105,7 +105,7 @@ public:
 	ADCHPP_DLL bool isFiltered(const std::string& features) const;
 
 	ADCHPP_DLL void updateFields(const AdcCommand& cmd);
-	ADCHPP_DLL void updateSupports(const AdcCommand& cmd) throw();
+	ADCHPP_DLL void updateSupports(const AdcCommand& cmd) noexcept;
 
 	/**
 	 * Set PSD (plugin specific data). This allows a plugin to store arbitrary
@@ -115,18 +115,18 @@ public:
 	 * @param id Id as retrieved from PluginManager::getPluginId()
 	 * @param data Data to store, this can be pretty much anything
 	 */
-	ADCHPP_DLL void setPluginData(const PluginDataHandle& handle, void* data) throw();
+	ADCHPP_DLL void setPluginData(const PluginDataHandle& handle, void* data) noexcept;
 
 	/**
 	 * @param handle Plugin data handle, as returned by PluginManager::registerPluginData
 	 * @return Value stored, NULL if none found
 	 */
-	ADCHPP_DLL void* getPluginData(const PluginDataHandle& handle) const throw();
+	ADCHPP_DLL void* getPluginData(const PluginDataHandle& handle) const noexcept;
 
 	/**
 	 * Clear any data referenced by the handle, calling the registered delete function.
 	 */
-	ADCHPP_DLL void clearPluginData(const PluginDataHandle& handle) throw();
+	ADCHPP_DLL void clearPluginData(const PluginDataHandle& handle) noexcept;
 
 	const CID& getCID() const { return cid; }
 	void setCID(const CID& cid_) { cid = cid_; }

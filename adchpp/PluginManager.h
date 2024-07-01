@@ -205,7 +205,7 @@ public:
 private:
 	friend class Core;
 
-	PluginManager(Core &core) throw();
+	PluginManager(Core &core) noexcept;
 
 	class PluginInfo {
 	public:

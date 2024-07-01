@@ -38,25 +38,25 @@ class Text {
 	typedef std::wstring wstring;
 
 public:
-	static const string& acpToUtf8(const string& str, string& tmp) throw();
-	ADCHPP_DLL static string acpToUtf8(const string& str) throw();
+	static const string& acpToUtf8(const string& str, string& tmp) noexcept;
+	ADCHPP_DLL static string acpToUtf8(const string& str) noexcept;
 
-	static const wstring& acpToWide(const string& str, wstring& tmp) throw();
-	ADCHPP_DLL static wstring acpToWide(const string& str) throw();
+	static const wstring& acpToWide(const string& str, wstring& tmp) noexcept;
+	ADCHPP_DLL static wstring acpToWide(const string& str) noexcept;
 
-	static const string& utf8ToAcp(const string& str, string& tmp) throw();
-	ADCHPP_DLL static string utf8ToAcp(const string& str) throw();
+	static const string& utf8ToAcp(const string& str, string& tmp) noexcept;
+	ADCHPP_DLL static string utf8ToAcp(const string& str) noexcept;
 
-	static const wstring& utf8ToWide(const string& str, wstring& tmp) throw();
-	ADCHPP_DLL static wstring utf8ToWide(const string& str) throw();
+	static const wstring& utf8ToWide(const string& str, wstring& tmp) noexcept;
+	ADCHPP_DLL static wstring utf8ToWide(const string& str) noexcept;
 
-	static const string& wideToAcp(const wstring& str, string& tmp) throw();
-	ADCHPP_DLL static string wideToAcp(const wstring& str) throw();
+	static const string& wideToAcp(const wstring& str, string& tmp) noexcept;
+	ADCHPP_DLL static string wideToAcp(const wstring& str) noexcept;
 
-	static const string& wideToUtf8(const wstring& str, string& tmp) throw();
-	ADCHPP_DLL static string wideToUtf8(const wstring& str) throw();
+	static const string& wideToUtf8(const wstring& str, string& tmp) noexcept;
+	ADCHPP_DLL static string wideToUtf8(const wstring& str) noexcept;
 
-	ADCHPP_DLL static bool validateUtf8(const string& str) throw();
+	ADCHPP_DLL static bool validateUtf8(const string& str) noexcept;
 
 private:
 	static int utf8ToWc(const char* str, wchar_t& c);

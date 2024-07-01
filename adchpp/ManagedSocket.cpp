@@ -39,7 +39,7 @@ ManagedSocket::ManagedSocket(SocketManager &sm, const AsyncStreamPtr &sock_, con
 	server(aServer)
 { }
 
-ManagedSocket::~ManagedSocket() throw() {
+ManagedSocket::~ManagedSocket() noexcept {
 	dcdebug("ManagedSocket deleted\n");
 }
 
@@ -56,7 +56,7 @@ size_t ManagedSocket::getQueuedBytes() const {
 	return sum(outBuf);
 }
 
-void ManagedSocket::write(const BufferPtr& buf, bool lowPrio /* = false */) throw() {
+void ManagedSocket::write(const BufferPtr& buf, bool lowPrio /* = false */) noexcept {
 	if(buf->size() == 0 || disconnecting())
 		return;
 
@@ -109,7 +109,7 @@ struct Disconnector {
 
 }
 
-void ManagedSocket::prepareWrite() throw() {
+void ManagedSocket::prepareWrite() noexcept {
 	if(!writing()) {	// Not writing
 		if(!outBuf.empty()) {
 			lastWrite = time::now();
@@ -120,7 +120,7 @@ void ManagedSocket::prepareWrite() throw() {
 	}
 }
 
-void ManagedSocket::completeWrite(const boost::system::error_code& ec, size_t bytes) throw() {
+void ManagedSocket::completeWrite(const boost::system::error_code& ec, size_t bytes) noexcept {
 	lastWrite = time::not_a_date_time;
 
 	if(!ec) {
@@ -155,12 +155,12 @@ void ManagedSocket::completeWrite(const boost::system::error_code& ec, size_t by
 	}
 }
 
-void ManagedSocket::prepareRead() throw() {
+void ManagedSocket::prepareRead() noexcept {
 	// We first send in an empty buffer to get notification when there's data available
 	sock->prepareRead(BufferPtr(), Handler<&ManagedSocket::prepareRead2>(shared_from_this()));
 }
 
-void ManagedSocket::prepareRead2(const boost::system::error_code& ec, size_t) throw() {
+void ManagedSocket::prepareRead2(const boost::system::error_code& ec, size_t) noexcept {
 	if(!ec) {
 		// ADC commands are typically small - using a small buffer
 		// helps with fairness
@@ -180,7 +180,7 @@ void ManagedSocket::prepareRead2(const boost::system::error_code& ec, size_t) th
 	}
 }
 
-void ManagedSocket::completeRead(const boost::system::error_code& ec, size_t bytes) throw() {
+void ManagedSocket::completeRead(const boost::system::error_code& ec, size_t bytes) noexcept {
 	if(!ec) {
 		try {
 			sm.getStats().recvBytes += bytes;
@@ -203,7 +203,7 @@ void ManagedSocket::completeRead(const boost::system::error_code& ec, size_t byt
 	}
 }
 
-void ManagedSocket::completeAccept(const boost::system::error_code& ec) throw() {
+void ManagedSocket::completeAccept(const boost::system::error_code& ec) noexcept {
 	if(!ec) {
 		if(connectedHandler)
 			connectedHandler();
@@ -215,14 +215,14 @@ void ManagedSocket::completeAccept(const boost::system::error_code& ec) throw() 
 	}
 }
 
-void ManagedSocket::ready() throw() {
+void ManagedSocket::ready() noexcept {
 	if(readyHandler)
 		readyHandler();
 
 	prepareRead();
 }
 
-void ManagedSocket::fail(Util::Reason reason, const std::string &info) throw() {
+void ManagedSocket::fail(Util::Reason reason, const std::string &info) noexcept {
 	if(failedHandler) {
 		failedHandler(reason, info);
 
@@ -254,7 +254,7 @@ struct Reporter {
 	std::string info;
 };
 
-bool ManagedSocket::getHbriParams(AdcCommand& cmd) const throw() {
+bool ManagedSocket::getHbriParams(AdcCommand& cmd) const noexcept {
 	if (!isV6()) {
 		if (!server->address6.empty()) {
 			cmd.addParam("I6", server->address6);
@@ -276,7 +276,7 @@ bool ManagedSocket::getHbriParams(AdcCommand& cmd) const throw() {
 	return true;
 }
 
-bool ManagedSocket::isV6() const throw() {
+bool ManagedSocket::isV6() const noexcept {
 	using namespace boost::asio::ip;
 
 	address remote;
@@ -287,7 +287,7 @@ bool ManagedSocket::isV6() const throw() {
 	return true;
 }
 
-void ManagedSocket::disconnect(Util::Reason reason, const std::string &info) throw() {
+void ManagedSocket::disconnect(Util::Reason reason, const std::string &info) noexcept {
 	if(disconnecting()) {
 		return;
 	}

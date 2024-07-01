@@ -57,7 +57,7 @@ using std::placeholders::_1;
 
 const string PluginManager::className = "PluginManager";
 
-PluginManager::PluginManager(Core &core) throw() : core(core) {
+PluginManager::PluginManager(Core &core) noexcept : core(core) {
 
 }
 

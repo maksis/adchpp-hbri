@@ -40,14 +40,14 @@ public:
 	ManagedSocket(SocketManager &sm, const AsyncStreamPtr& sock_, const ServerInfoPtr& aServer);
 
 	/** Asynchronous write */
-	ADCHPP_DLL void write(const BufferPtr& buf, bool lowPrio = false) throw();
+	ADCHPP_DLL void write(const BufferPtr& buf, bool lowPrio = false) noexcept;
 
 	/** Returns the number of bytes in the output buffer; buffers must be locked */
 	ADCHPP_DLL size_t getQueuedBytes() const;
 
 	/** Asynchronous disconnect. Pending data will be written within the limits of the
 	 * DisconnectTimeout setting, but no more data will be read. */
-	ADCHPP_DLL void disconnect(Util::Reason reason, const std::string &info = Util::emptyString) throw();
+	ADCHPP_DLL void disconnect(Util::Reason reason, const std::string &info = Util::emptyString) noexcept;
 
 	const std::string& getIp() const { return ip; }
 	void setIp(const std::string& ip_) { ip = ip_; }
@@ -68,23 +68,23 @@ public:
 
 	time::ptime getLastWrite() { return lastWrite; }
 
-	~ManagedSocket() throw();
+	~ManagedSocket() noexcept;
 
-	bool getHbriParams(AdcCommand& cmd) const throw();
-	bool isV6() const throw();
+	bool getHbriParams(AdcCommand& cmd) const noexcept;
+	bool isV6() const noexcept;
 private:
 	friend class SocketManager;
 	friend class SocketFactory;
 
-	void completeAccept(const boost::system::error_code&) throw();
-	void ready() throw();
-	void prepareWrite() throw();
-	void completeWrite(const boost::system::error_code& ec, size_t bytes) throw();
-	void prepareRead() throw();
-	void prepareRead2(const boost::system::error_code& ec, size_t bytes) throw();
-	void completeRead(const boost::system::error_code& ec, size_t bytes) throw();
+	void completeAccept(const boost::system::error_code&) noexcept;
+	void ready() noexcept;
+	void prepareWrite() noexcept;
+	void completeWrite(const boost::system::error_code& ec, size_t bytes) noexcept;
+	void prepareRead() noexcept;
+	void prepareRead2(const boost::system::error_code& ec, size_t bytes) noexcept;
+	void completeRead(const boost::system::error_code& ec, size_t bytes) noexcept;
 
-	void fail(Util::Reason reason, const std::string &info) throw();
+	void fail(Util::Reason reason, const std::string &info) noexcept;
 
 	bool disconnecting() const;
 	bool writing() const;

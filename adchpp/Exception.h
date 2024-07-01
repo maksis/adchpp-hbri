@@ -27,11 +27,11 @@ class ADCHPP_VISIBLE Exception : public std::exception
 {
 public:
 	Exception() { }
-	Exception(const std::string& aError) throw() : error(aError) { dcdebug("Thrown: %s\n", error.c_str()); }
-	virtual ~Exception() throw() { }
-	const std::string& getError() const throw() { return error; }
+	Exception(const std::string& aError) noexcept : error(aError) { dcdebug("Thrown: %s\n", error.c_str()); }
+	virtual ~Exception() noexcept { }
+	const std::string& getError() const noexcept { return error; }
 	
-	virtual const char* what() const throw() { return error.c_str(); }
+	virtual const char* what() const noexcept { return error.c_str(); }
 protected:
 	std::string error;
 };
@@ -40,18 +40,18 @@ protected:
 
 #define STANDARD_EXCEPTION(name) class ADCHPP_VISIBLE name : public Exception { \
 public:\
-	name() throw() : Exception(#name) { } \
-	name(const std::string& aError) throw() : Exception(#name ": " + aError) { } \
-	virtual ~name() throw() { } \
+	name() noexcept : Exception(#name) { } \
+	name(const std::string& aError) noexcept : Exception(#name ": " + aError) { } \
+	virtual ~name() noexcept { } \
 }
 
 #else // NDEBUG
 
 #define STANDARD_EXCEPTION(name) class ADCHPP_VISIBLE name : public Exception { \
 public:\
-	name() throw() : Exception() { } \
-	name(const std::string& aError) throw() : Exception(aError) { } \
-	virtual ~name() throw() { } \
+	name() noexcept : Exception() { } \
+	name(const std::string& aError) noexcept : Exception(aError) { } \
+	virtual ~name() noexcept { } \
 }
 #endif
 

@@ -37,8 +37,8 @@ class Thread : private boost::noncopyable
 {
 public:
 
-	ADCHPP_DLL void start() throw(ThreadException);
-	ADCHPP_DLL void join() throw();
+	ADCHPP_DLL void start();
+	ADCHPP_DLL void join() noexcept;
 
 #ifdef _WIN32
 	enum Priority {
@@ -47,15 +47,15 @@ public:
 		HIGH = THREAD_PRIORITY_ABOVE_NORMAL
 	};
 
-	Thread() throw() : threadHandle(INVALID_HANDLE_VALUE) { }
+	Thread() noexcept : threadHandle(INVALID_HANDLE_VALUE) { }
 	virtual ~Thread() { 
 		if(threadHandle != INVALID_HANDLE_VALUE)
 			CloseHandle(threadHandle);
 	}
 	
-	void setThreadPriority(Priority p) throw() { ::SetThreadPriority(threadHandle, p); }
+	void setThreadPriority(Priority p) noexcept { ::SetThreadPriority(threadHandle, p); }
 	
-	bool isRunning() throw() { return (threadHandle != INVALID_HANDLE_VALUE); }
+	bool isRunning() noexcept { return (threadHandle != INVALID_HANDLE_VALUE); }
 
 	static void sleep(uint32_t millis) { ::Sleep(millis); }
 	static void yield() { ::Sleep(1); }
@@ -67,7 +67,7 @@ public:
 		NORMAL = 0,
 		HIGH = -1
 	};
-	Thread() throw() : t(0) { }
+	Thread() noexcept : t(0) { }
 	virtual ~Thread() { 
 		if(t != 0) {
 			pthread_detach(t);

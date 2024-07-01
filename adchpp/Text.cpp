@@ -105,12 +105,12 @@ void Text::wcToUtf8(wchar_t c, string& str) {
 	}
 }
 
-const string& Text::acpToUtf8(const string& str, string& tmp) throw() {
+const string& Text::acpToUtf8(const string& str, string& tmp) noexcept {
 	wstring wtmp;
 	return wideToUtf8(acpToWide(str, wtmp), tmp);
 }
 
-const wstring& Text::acpToWide(const string& str, wstring& tmp) throw() {
+const wstring& Text::acpToWide(const string& str, wstring& tmp) noexcept {
 	if(str.empty())
 		return Util::emptyStringW;
 #ifdef _WIN32
@@ -152,7 +152,7 @@ const wstring& Text::acpToWide(const string& str, wstring& tmp) throw() {
 #endif
 }
 
-const string& Text::wideToUtf8(const wstring& str, string& tgt) throw() {
+const string& Text::wideToUtf8(const wstring& str, string& tgt) noexcept {
 	if(str.empty()) {
 		return Util::emptyString;
 	}
@@ -165,7 +165,7 @@ const string& Text::wideToUtf8(const wstring& str, string& tgt) throw() {
 	return tgt;
 }
 
-const string& Text::wideToAcp(const wstring& str, string& tmp) throw() {
+const string& Text::wideToAcp(const wstring& str, string& tmp) noexcept {
 	if(str.empty())
 		return Util::emptyString;
 #ifdef _WIN32
@@ -196,7 +196,7 @@ const string& Text::wideToAcp(const wstring& str, string& tmp) throw() {
 #endif
 }
 
-bool Text::validateUtf8(const string& str) throw() {
+bool Text::validateUtf8(const string& str) noexcept {
 	string::size_type i = 0;
 	while(i < str.length()) {
 		wchar_t dummy = 0;
@@ -208,12 +208,12 @@ bool Text::validateUtf8(const string& str) throw() {
 	return true;
 }
 
-const string& Text::utf8ToAcp(const string& str, string& tmp) throw() {
+const string& Text::utf8ToAcp(const string& str, string& tmp) noexcept {
 	wstring wtmp;
 	return wideToAcp(utf8ToWide(str, wtmp), tmp);
 }
 
-const wstring& Text::utf8ToWide(const string& str, wstring& tgt) throw() {
+const wstring& Text::utf8ToWide(const string& str, wstring& tgt) noexcept {
 	tgt.reserve(str.length());
 	string::size_type n = str.length();
 	for(string::size_type i = 0; i < n; ) {
@@ -230,32 +230,32 @@ const wstring& Text::utf8ToWide(const string& str, wstring& tgt) throw() {
 	return tgt;
 }
 
-string Text::acpToUtf8(const string& str) throw() {
+string Text::acpToUtf8(const string& str) noexcept {
 	string tmp;
 	return acpToUtf8(str, tmp);
 }
 
-wstring Text::acpToWide(const string& str) throw() {
+wstring Text::acpToWide(const string& str) noexcept {
 	wstring tmp;
 	return acpToWide(str, tmp);
 }
 
-string Text::utf8ToAcp(const string& str) throw() {
+string Text::utf8ToAcp(const string& str) noexcept {
 	string tmp;
 	return utf8ToAcp(str, tmp);
 }
 
-wstring Text::utf8ToWide(const string& str) throw() {
+wstring Text::utf8ToWide(const string& str) noexcept {
 	wstring tmp;
 	return utf8ToWide(str, tmp);
 }
 
-string Text::wideToAcp(const wstring& str) throw() {
+string Text::wideToAcp(const wstring& str) noexcept {
 	string tmp;
 	return wideToAcp(str, tmp);
 }
 
-string Text::wideToUtf8(const wstring& str) throw() {
+string Text::wideToUtf8(const wstring& str) noexcept {
 	string tmp;
 	return wideToUtf8(str, tmp);
 }

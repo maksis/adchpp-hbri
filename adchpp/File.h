@@ -46,23 +46,23 @@ public:
 		TRUNCATE = 0x04
 	};
 
-	ADCHPP_DLL File(const std::string& aFileName, int access, int mode = OPEN) throw(FileException);
+	ADCHPP_DLL File(const std::string& aFileName, int access, int mode = OPEN);
 
 	ADCHPP_DLL int64_t getSize();
 	ADCHPP_DLL static int64_t getSize(const std::string& aFileName);
 
-	ADCHPP_DLL std::string read(uint32_t len) throw(FileException);
+	ADCHPP_DLL std::string read(uint32_t len);
 	
 	/** Returns the directory part of the full path */
-	ADCHPP_DLL static std::string getFilePath(const std::string& name) throw();
+	ADCHPP_DLL static std::string getFilePath(const std::string& name) noexcept;
 	/** Returns the filename part of the full path */
-	ADCHPP_DLL static std::string getFileName(const std::string& name) throw();
-	ADCHPP_DLL static bool isAbsolutePath(const std::string& name) throw();
+	ADCHPP_DLL static std::string getFileName(const std::string& name) noexcept;
+	ADCHPP_DLL static bool isAbsolutePath(const std::string& name) noexcept;
 
 	ADCHPP_DLL static std::string makeAbsolutePath(const std::string& filename);
 	ADCHPP_DLL static std::string makeAbsolutePath(const std::string& path, const std::string& filename);
 
-	ADCHPP_DLL static void ensureDirectory(const std::string& aFile) throw();
+	ADCHPP_DLL static void ensureDirectory(const std::string& aFile) noexcept;
 	
 #ifdef _WIN32
 	void close() {
@@ -93,15 +93,15 @@ public:
 		::SetFilePointer(h, (DWORD)(pos & 0xffffffff), &x, FILE_CURRENT);
 	}
 	
-	uint32_t read(void* buf, uint32_t len) throw(FileException) {
+	uint32_t read(void* buf, uint32_t len) {
 		DWORD x;
 		if(!::ReadFile(h, buf, len, &x, NULL)) {
-			throw(FileException(Util::translateError(GetLastError())));
+			throw FileException(Util::translateError(GetLastError()));
 		}
 		return x;
 	}
 
-	void write(const void* buf, size_t len) throw(FileException) {
+	void write(const void* buf, size_t len) {
 		DWORD x;
 		if(!::WriteFile(h, buf, (DWORD)len, &x, NULL)) {
 			throw FileException(Util::translateError(GetLastError()));
@@ -111,7 +111,7 @@ public:
 		}
 	}
 	
-	void setEOF() throw(FileException) {
+	void setEOF() {
 		dcassert(h != NULL);
 		if(!SetEndOfFile(h)) {
 			throw FileException(Util::translateError(GetLastError()));
@@ -136,14 +136,14 @@ public:
 	void setEndPos(int64_t pos) { lseek(h, (off_t)pos, SEEK_END); };
 	void movePos(int64_t pos) { lseek(h, (off_t)pos, SEEK_CUR); };
 
-	uint32_t read(void* buf, uint32_t len) throw(FileException) {
+	uint32_t read(void* buf, uint32_t len) {
 		ssize_t x = ::read(h, buf, (size_t)len);
 		if(x == -1)
 			throw FileException(Util::translateError(errno));
 		return (uint32_t)x;
 	}
 	
-	void write(const void* buf, uint32_t len) throw(FileException) {
+	void write(const void* buf, uint32_t len) {
 		ssize_t x;
 		x = ::write(h, buf, len);
 		if(x == -1)
@@ -155,7 +155,7 @@ public:
 	/**
 	 * @todo fix for unix...
 	 */
-	void setEOF() throw(FileException) {
+	void setEOF() {
 	}
 
 	static void deleteFile(const std::string& aFileName) { ::unlink(aFileName.c_str()); };
@@ -167,12 +167,12 @@ public:
 		close();
 	}
 
-	std::string read() throw(FileException) {
+	std::string read() {
 		setPos(0);
 		return read((uint32_t)getSize());
 	}
 
-	void write(const std::string& aString) throw(FileException) {
+	void write(const std::string& aString) {
 		write((void*)aString.data(), aString.size());
 	}
 		

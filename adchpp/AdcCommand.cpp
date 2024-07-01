@@ -57,7 +57,7 @@ void AdcCommand::escape(const string& s, string& out) {
 	}
 }
 
-void AdcCommand::parse(const char* buf, size_t len) throw(ParseException) {
+void AdcCommand::parse(const char* buf, size_t len) {
 	if(len < 5) {
 		throw ParseException("Command too short");
 	}

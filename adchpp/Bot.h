@@ -35,7 +35,7 @@ public:
 
 	virtual void send(const BufferPtr& cmd) { if(handler) handler(*this, cmd); }
 
-	ADCHPP_DLL virtual void disconnect(Util::Reason reason, const std::string &info) throw();
+	ADCHPP_DLL virtual void disconnect(Util::Reason reason, const std::string &info) noexcept;
 
 	using Entity::send;
 private:

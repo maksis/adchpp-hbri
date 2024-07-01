@@ -45,7 +45,7 @@ public:
 	typedef std::function<void()> Callback;
 
 	/** execute a function asynchronously */
-	ADCHPP_DLL void addJob(const Callback& callback) throw();
+	ADCHPP_DLL void addJob(const Callback& callback) noexcept;
 	/** execute a function after the specified amount of time
 	* @param msec milliseconds
 	*/
@@ -124,7 +124,7 @@ private:
 		Callback* callback);
 	void cancelTimer(timer_ptr timer, Callback* callback);
 
-	void onLoad(const SimpleXML& xml) throw();
+	void onLoad(const SimpleXML& xml) noexcept;
 
 	SocketManager(Core &core);
 

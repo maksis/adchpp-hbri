@@ -26,7 +26,7 @@ namespace adchpp {
 
 #ifdef _WIN32
 
-void Thread::start() throw(ThreadException) {
+void Thread::start() {
 	if(isRunning()) {
 		throw ThreadException(_T("Already running"));
 	}
@@ -37,7 +37,7 @@ void Thread::start() throw(ThreadException) {
 	}
 }
 
-void Thread::join() throw() {
+void Thread::join() noexcept {
 	if(!isRunning()) {
 		return;
 	}
@@ -49,7 +49,7 @@ void Thread::join() throw() {
 
 #else // _WIN32
 
-void Thread::start() throw(ThreadException) {
+void Thread::start() {
 	if(isRunning()) {
 		throw ThreadException(_T("Already running"));
 	}
@@ -65,7 +65,7 @@ void Thread::start() throw(ThreadException) {
 	pthread_attr_destroy(&attr);
 }
 
-void Thread::join() throw() {
+void Thread::join() noexcept {
 	if(t == 0)
 		return;
 

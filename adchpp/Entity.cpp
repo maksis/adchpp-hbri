@@ -65,7 +65,7 @@ void Entity::setField(const char* name, const std::string& value) {
     INF = BufferPtr();
 }
 
-bool Entity::getAllFields(AdcCommand& cmd) const throw() {
+bool Entity::getAllFields(AdcCommand& cmd) const noexcept {
 	for(auto i = fields.begin(); i != fields.end(); ++i)
 		cmd.addParam(AdcCommand::fromField(i->first), i->second);
 	return !fields.empty();
@@ -138,7 +138,7 @@ bool Entity::hasSupport(uint32_t feature) const {
 	return find(supports.begin(), supports.end(), feature) != supports.end();
 }
 
-void Entity::updateSupports(const AdcCommand& cmd) throw() {
+void Entity::updateSupports(const AdcCommand& cmd) noexcept {
 	for(StringIterC i = cmd.getParameters().begin(); i != cmd.getParameters().end(); ++i) {
 		const std::string& str = *i;
 		if(str.size() != 6) {
@@ -181,7 +181,7 @@ static const int protoSupportCount = 2;
 static uint32_t supports4[protoSupportCount] = { AdcCommand::toFourCC("TCP4"), AdcCommand::toFourCC("UDP4") };
 static uint32_t supports6[protoSupportCount] = { AdcCommand::toFourCC("TCP6"), AdcCommand::toFourCC("UDP6") };
 
-void Entity::stripProtocolSupports() throw() {
+void Entity::stripProtocolSupports() noexcept {
 	const auto& sup = dynamic_cast<Client*>(this)->isV6() ? supports4 : supports6;
 	for (auto i = 0; i < protoSupportCount; ++i) {
 		removeClientSupport(sup[i]);
@@ -207,17 +207,17 @@ bool Entity::isFiltered(const std::string& features) const {
 	return false;
 }
 
-void Entity::setPluginData(const PluginDataHandle& handle, void* data) throw() {
+void Entity::setPluginData(const PluginDataHandle& handle, void* data) noexcept {
 	clearPluginData(handle);
 	pluginData.insert(std::make_pair(handle, data));
 }
 
-void* Entity::getPluginData(const PluginDataHandle& handle) const throw() {
+void* Entity::getPluginData(const PluginDataHandle& handle) const noexcept {
 	PluginDataMap::const_iterator i = pluginData.find(handle);
 	return i == pluginData.end() ? 0 : i->second;
 }
 
-void Entity::clearPluginData(const PluginDataHandle& handle) throw() {
+void Entity::clearPluginData(const PluginDataHandle& handle) noexcept {
 	PluginDataMap::iterator i = pluginData.find(handle);
 	if(i == pluginData.end()) {
 		return;

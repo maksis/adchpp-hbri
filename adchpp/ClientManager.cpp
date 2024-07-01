@@ -51,7 +51,7 @@ using namespace std;
 
 const string ClientManager::className = "ClientManager";
 
-ClientManager::ClientManager(Core &core) throw() :
+ClientManager::ClientManager(Core &core) noexcept :
 core(core),
 hub(*this),
 maxCommandSize(16 * 1024),
@@ -115,7 +115,7 @@ void ClientManager::regBot(Bot& bot) {
 	nicks.insert(make_pair(bot.getField("NI"), &bot));
 }
 
-void ClientManager::send(const AdcCommand& cmd) throw() {
+void ClientManager::send(const AdcCommand& cmd) noexcept {
 	if(cmd.getPriority() == AdcCommand::PRIORITY_IGNORE) {
 		return;
 	}
@@ -158,13 +158,13 @@ void ClientManager::maybeSend(Entity& c, const AdcCommand& cmd) {
 	}
 }
 
-void ClientManager::sendToAll(const BufferPtr& buf) throw() {
+void ClientManager::sendToAll(const BufferPtr& buf) noexcept {
 	for(EntityIter i = entities.begin(); i != entities.end(); ++i) {
 		i->second->send(buf);
 	}
 }
 
-size_t ClientManager::getQueuedBytes() throw() {
+size_t ClientManager::getQueuedBytes() noexcept {
 	size_t total = 0;
 
 	for(EntityIter i = entities.begin(); i != entities.end(); ++i) {
@@ -181,7 +181,7 @@ void ClientManager::sendTo(const BufferPtr& buffer, uint32_t to) {
 	}
 }
 
-void ClientManager::handleIncoming(const ManagedSocketPtr& socket) throw() {
+void ClientManager::handleIncoming(const ManagedSocketPtr& socket) noexcept {
 	Client::create(*this, socket, makeSID());
 }
 
@@ -201,7 +201,7 @@ uint32_t ClientManager::makeSID() {
 	}
 }
 
-void ClientManager::onConnected(Client& c) throw() {
+void ClientManager::onConnected(Client& c) noexcept {
 	dcdebug("%s connected\n", AdcCommand::fromSID(c.getSID()).c_str());
 
 	logins.push_back(make_pair(&c, time::now()));
@@ -209,12 +209,12 @@ void ClientManager::onConnected(Client& c) throw() {
 	signalConnected_(c);
 }
 
-void ClientManager::onReady(Client& c) throw() {
+void ClientManager::onReady(Client& c) noexcept {
 	dcdebug("%s ready\n", AdcCommand::fromSID(c.getSID()).c_str());
 	signalReady_(c);
 }
 
-void ClientManager::onReceive(Entity& c, AdcCommand& cmd) throw() {
+void ClientManager::onReceive(Entity& c, AdcCommand& cmd) noexcept {
 	if(c.isSet(Entity::FLAG_GHOST)) {
 		return;
 	}
@@ -238,7 +238,7 @@ void ClientManager::onReceive(Entity& c, AdcCommand& cmd) throw() {
 	send(cmd);
 }
 
-void ClientManager::onBadLine(Client& c, const string& aLine) throw() {
+void ClientManager::onBadLine(Client& c, const string& aLine) noexcept {
 	if(c.isSet(Entity::FLAG_GHOST)) {
 		return;
 	}
@@ -246,11 +246,11 @@ void ClientManager::onBadLine(Client& c, const string& aLine) throw() {
 	signalBadLine_(c, aLine);
 }
 
-void ClientManager::badState(Entity& c, const AdcCommand& cmd) throw() {
+void ClientManager::badState(Entity& c, const AdcCommand& cmd) noexcept {
 	disconnect(c, Util::REASON_BAD_STATE, "Invalid state for command", AdcCommand::ERROR_BAD_STATE, "FC" + cmd.getFourCC());
 }
 
-bool ClientManager::handleDefault(Entity& c, AdcCommand& cmd) throw() {
+bool ClientManager::handleDefault(Entity& c, AdcCommand& cmd) noexcept {
 	if(c.getState() != Entity::STATE_NORMAL) {
 		badState(c, cmd);
 		return false;
@@ -258,7 +258,7 @@ bool ClientManager::handleDefault(Entity& c, AdcCommand& cmd) throw() {
 	return true;
 }
 
-bool ClientManager::handle(AdcCommand::SUP, Entity& c, AdcCommand& cmd) throw() {
+bool ClientManager::handle(AdcCommand::SUP, Entity& c, AdcCommand& cmd) noexcept {
 	if(!verifySUP(c, cmd)) {
 		return false;
 	}
@@ -273,7 +273,7 @@ bool ClientManager::handle(AdcCommand::SUP, Entity& c, AdcCommand& cmd) throw() 
 	return true;
 }
 
-bool ClientManager::verifySUP(Entity& c, AdcCommand& cmd) throw() {
+bool ClientManager::verifySUP(Entity& c, AdcCommand& cmd) noexcept {
 	c.updateSupports(cmd);
 
 	if(!c.hasSupport(AdcCommand::toFourCC("BASE"))) {
@@ -289,7 +289,7 @@ bool ClientManager::verifySUP(Entity& c, AdcCommand& cmd) throw() {
 	return true;
 }
 
-bool ClientManager::verifyINF(Entity& c, AdcCommand& cmd) throw() {
+bool ClientManager::verifyINF(Entity& c, AdcCommand& cmd) noexcept {
 	if (!verifyCID(c, cmd))
 		return false;
 
@@ -388,7 +388,7 @@ bool ClientManager::sendHBRI(Entity& c) {
 	return false;
 }
 
-bool ClientManager::handle(AdcCommand::INF, Entity& c, AdcCommand& cmd) throw() {
+bool ClientManager::handle(AdcCommand::INF, Entity& c, AdcCommand& cmd) noexcept {
 	if(c.getState() != Entity::STATE_IDENTIFY && c.getState() != Entity::STATE_NORMAL) {
 		badState(c, cmd);
 		return false;
@@ -412,7 +412,7 @@ bool ClientManager::handle(AdcCommand::INF, Entity& c, AdcCommand& cmd) throw() 
 static const int allowedCount = 3;
 static const char* allowedV4[allowedCount] = { "I4", "U4", "SU" };
 static const char* allowedV6[allowedCount] = { "I6", "U6", "SU" };
-bool ClientManager::handle(AdcCommand::TCP, Entity& c, AdcCommand& cmd) throw() {
+bool ClientManager::handle(AdcCommand::TCP, Entity& c, AdcCommand& cmd) noexcept {
 	dcdebug("Received HBRI TCP: %s", cmd.toString().c_str());
 	
 	string error;
@@ -476,7 +476,7 @@ bool ClientManager::handle(AdcCommand::TCP, Entity& c, AdcCommand& cmd) throw() 
 	return true;
 }
 
-bool ClientManager::verifyIp(Client& c, AdcCommand& cmd, bool isHbriConn) throw() {
+bool ClientManager::verifyIp(Client& c, AdcCommand& cmd, bool isHbriConn) noexcept {
 	if(c.isSet(Entity::FLAG_OK_IP))
 		return true;
 
@@ -565,7 +565,7 @@ bool ClientManager::verifyIp(Client& c, AdcCommand& cmd, bool isHbriConn) throw(
 	return true;
 }
 
-bool ClientManager::verifyCID(Entity& c, AdcCommand& cmd) throw() {
+bool ClientManager::verifyCID(Entity& c, AdcCommand& cmd) noexcept {
 	if(cmd.getParam("ID", 0, strtmp)) {
 		dcdebug("%s verifying CID %s\n", AdcCommand::fromSID(c.getSID()).c_str(), strtmp.c_str());
 		if(c.getState() != Entity::STATE_IDENTIFY) {
@@ -654,7 +654,7 @@ bool validateNick(const string& nick) {
 }
 }
 
-bool ClientManager::verifyNick(Entity& c, const AdcCommand& cmd) throw() {
+bool ClientManager::verifyNick(Entity& c, const AdcCommand& cmd) noexcept {
 	if(cmd.getParam("NI", 0, strtmp)) {
 		dcdebug("%s verifying nick %s\n", AdcCommand::fromSID(c.getSID()).c_str(), strtmp.c_str());
 		
@@ -678,7 +678,7 @@ bool ClientManager::verifyNick(Entity& c, const AdcCommand& cmd) throw() {
 	return true;
 }
 
-void ClientManager::setState(Entity& c, Entity::State newState) throw() {
+void ClientManager::setState(Entity& c, Entity::State newState) noexcept {
 	Entity::State oldState = c.getState();
 	c.setState(newState);
 	signalState_(c, oldState);
@@ -698,7 +698,7 @@ void ClientManager::disconnect(Entity& c, Util::Reason reason, const std::string
 	c.disconnect(reason);
 }
 
-void ClientManager::enterIdentify(Entity& c, bool sendData) throw() {
+void ClientManager::enterIdentify(Entity& c, bool sendData) noexcept {
 	dcassert(c.getState() == Entity::STATE_PROTOCOL);
 	dcdebug("%s entering IDENTIFY\n", AdcCommand::fromSID(c.getSID()).c_str());
 	if(sendData) {
@@ -710,7 +710,7 @@ void ClientManager::enterIdentify(Entity& c, bool sendData) throw() {
 	setState(c, Entity::STATE_IDENTIFY);
 }
 
-ByteVector ClientManager::enterVerify(Entity& c, bool sendData) throw() {
+ByteVector ClientManager::enterVerify(Entity& c, bool sendData) noexcept {
 	dcassert(c.getState() == Entity::STATE_IDENTIFY);
 	dcdebug("%s entering VERIFY\n", AdcCommand::fromSID(c.getSID()).c_str());
 
@@ -729,7 +729,7 @@ ByteVector ClientManager::enterVerify(Entity& c, bool sendData) throw() {
 	return challenge;
 }
 
-bool ClientManager::enterNormal(Entity& c, bool sendData, bool sendOwnInf) throw() {
+bool ClientManager::enterNormal(Entity& c, bool sendData, bool sendOwnInf) noexcept {
 	if (c.isSet(Entity::FLAG_VALIDATE_HBRI)) {
 		if (sendHBRI(c)) {
 			return false;
@@ -762,7 +762,7 @@ bool ClientManager::enterNormal(Entity& c, bool sendData, bool sendOwnInf) throw
 	return true;
 }
 
-void ClientManager::removeLogins(Entity& e) throw() {
+void ClientManager::removeLogins(Entity& e) noexcept {
 	Client* c = dynamic_cast<Client*>(&e);
 	if(!c) {
 		return;
@@ -783,7 +783,7 @@ void ClientManager::removeLogins(Entity& e) throw() {
 	}
 }
 
-void ClientManager::removeEntity(Entity& c, Util::Reason reason, const std::string &info) throw() {
+void ClientManager::removeEntity(Entity& c, Util::Reason reason, const std::string &info) noexcept {
 	if(c.isSet(Entity::FLAG_GHOST))
 		return;
 
@@ -803,7 +803,7 @@ void ClientManager::removeEntity(Entity& c, Util::Reason reason, const std::stri
 	cids.erase(c.getCID());
 }
 
-Entity* ClientManager::getEntity(uint32_t aSid) throw() {
+Entity* ClientManager::getEntity(uint32_t aSid) noexcept {
 	switch(aSid) {
 	case AdcCommand::INVALID_SID: return nullptr;
 	case AdcCommand::HUB_SID: return &hub;
@@ -815,17 +815,17 @@ Entity* ClientManager::getEntity(uint32_t aSid) throw() {
 	}
 }
 
-uint32_t ClientManager::getSID(const string& aNick) const throw() {
+uint32_t ClientManager::getSID(const string& aNick) const noexcept {
 	NickMap::const_iterator i = nicks.find(aNick);
 	return (i == nicks.end()) ? AdcCommand::INVALID_SID : i->second->getSID();
 }
 
-uint32_t ClientManager::getSID(const CID& cid) const throw() {
+uint32_t ClientManager::getSID(const CID& cid) const noexcept {
 	CIDMap::const_iterator i = cids.find(cid);
 	return (i == cids.end()) ? AdcCommand::INVALID_SID : i->second->getSID();
 }
 
-void ClientManager::onFailed(Client& c, Util::Reason reason, const std::string &info) throw() {
+void ClientManager::onFailed(Client& c, Util::Reason reason, const std::string &info) noexcept {
 	removeEntity(c, reason, info);
 }
 

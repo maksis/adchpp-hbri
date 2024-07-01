@@ -34,16 +34,16 @@ namespace adchpp {
  */
 class ADCHPP_VISIBLE Client : public Entity, public FastAlloc<Client> {
 public:
-	static Client* create(ClientManager &cm, const ManagedSocketPtr& ms_, uint32_t sid_) throw();
+	static Client* create(ClientManager &cm, const ManagedSocketPtr& ms_, uint32_t sid_) noexcept;
 
 	using Entity::send;
 
 	virtual void send(const BufferPtr& command) { socket->write(command); }
 
 	/** @param reason The statistic to update */
-	ADCHPP_DLL virtual void disconnect(Util::Reason reason, const std::string &info = Util::emptyString) throw();
-	const std::string& getIp() const throw() { return socket->getIp(); }
-	bool getHbriParams(AdcCommand& cmd) const throw() { return socket->getHbriParams(cmd); }
+	ADCHPP_DLL virtual void disconnect(Util::Reason reason, const std::string &info = Util::emptyString) noexcept;
+	const std::string& getIp() const noexcept { return socket->getIp(); }
+	bool getHbriParams(AdcCommand& cmd) const noexcept { return socket->getHbriParams(cmd); }
 	bool isV6() const { return socket->isV6(); }
 
 	/**
@@ -57,7 +57,7 @@ public:
 	virtual time::ptime getOverflow() const { return socket->getOverflow(); }
 
 private:
-	Client(ClientManager &cm, uint32_t sid_) throw();
+	Client(ClientManager &cm, uint32_t sid_) noexcept;
 	virtual ~Client();
 
 	bool disconnecting;
@@ -67,12 +67,12 @@ private:
 	int64_t dataBytes;
 
 	DataFunction dataHandler;
-	void setSocket(const ManagedSocketPtr& aSocket) throw();
+	void setSocket(const ManagedSocketPtr& aSocket) noexcept;
 
-	void onConnected() throw();
-	void onReady() throw();
-	void onData(const BufferPtr&) throw();
-	void onFailed(Util::Reason reason, const std::string &info) throw();
+	void onConnected() noexcept;
+	void onReady() noexcept;
+	void onData(const BufferPtr&) noexcept;
+	void onFailed(Util::Reason reason, const std::string &info) noexcept;
 
 };
 

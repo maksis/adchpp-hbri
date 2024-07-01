@@ -45,7 +45,7 @@ Bot::Bot(ClientManager &cm, uint32_t sid, const Bot::SendHandler& handler_) : En
 	setCID(CID::generate());
 }
 
-void Bot::disconnect(Util::Reason reason, const std::string &info) throw() {
+void Bot::disconnect(Util::Reason reason, const std::string &info) noexcept {
 	if(!disconnecting) {
 		disconnecting = true;
 

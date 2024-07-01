@@ -24,7 +24,7 @@ namespace adchpp {
 
 using namespace std;
 
-string File::read(uint32_t len) throw(FileException) {
+string File::read(uint32_t len) {
 	string tmp;
 	tmp.resize(len);
 	uint32_t x = read(&tmp[0], len);
@@ -34,7 +34,7 @@ string File::read(uint32_t len) throw(FileException) {
 
 #ifdef _WIN32
 
-File::File(const string& aFileName, int access, int mode) throw(FileException) {
+File::File(const string& aFileName, int access, int mode) {
 	dcassert(access == WRITE || access == READ || access == (READ | WRITE));
 
 	int m = 0;
@@ -89,22 +89,22 @@ int64_t File::getSize(const string& aFileName) {
 	}
 }
 
-string File::getFilePath(const string& path) throw() {
+string File::getFilePath(const string& path) noexcept {
 	string::size_type i = path.find_last_of("\\/");
 	return (i != string::npos) ? path.substr(0, i) : path;
 }
 
-string File::getFileName(const string& path) throw() {
+string File::getFileName(const string& path) noexcept {
 	string::size_type i = path.find_last_of("\\/");
 	return (i != string::npos) ? path.substr(i + 1) : path;
 }
 
-bool File::isAbsolutePath(const string& path) throw() {
+bool File::isAbsolutePath(const string& path) noexcept {
 	return (path.length() >= 3 && path[1] == ':' && (path[2] == '\\' || path[2] == '/')) ||
 		(path.length() >= 1 && (path[0] == '\\' || path[0] == '/'));
 }
 
-void File::ensureDirectory(const string& aFile) throw() {
+void File::ensureDirectory(const string& aFile) noexcept {
 	string::size_type start = 0;
 	
 	while( (start = aFile.find_first_of("\\/", start)) != string::npos) {
@@ -115,7 +115,7 @@ void File::ensureDirectory(const string& aFile) throw() {
 
 #else // _WIN32
 
-File::File(const string& aFileName, int access, int mode) throw(FileException) {
+File::File(const string& aFileName, int access, int mode) {
 	dcassert(access == WRITE || access == READ || access == (READ | WRITE));
 	
 	int m = 0;
@@ -153,21 +153,21 @@ int64_t File::getSize(const string& aFileName) {
 	return s.st_size;
 }
 
-string File::getFilePath(const string& path) throw() {
+string File::getFilePath(const string& path) noexcept {
 	string::size_type i = path.rfind('/');
 	return (i != string::npos) ? path.substr(0, i) : path;
 }
 
-string File::getFileName(const string& path) throw() {
+string File::getFileName(const string& path) noexcept {
 	string::size_type i = path.rfind('/');
 	return (i != string::npos) ? path.substr(i + 1) : path;
 }
 
-bool File::isAbsolutePath(const string& path) throw() {
+bool File::isAbsolutePath(const string& path) noexcept {
 	return path.length() >= 1 && path[0] == '/';
 }
 
-void File::ensureDirectory(const string& aFile) throw() {
+void File::ensureDirectory(const string& aFile) noexcept {
 	string::size_type start = 0;
 	
 	while( (start = aFile.find('/', start)) != string::npos) {

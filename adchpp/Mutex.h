@@ -64,16 +64,16 @@ private:
 
 class RecursiveMutex : private boost::noncopyable {
 public:
-	RecursiveMutex() throw() {
+	RecursiveMutex() noexcept {
 		pthread_mutexattr_t attr;
 		pthread_mutexattr_init(&attr);
 		pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 		pthread_mutex_init(&mtx, &attr);
 		pthread_mutexattr_destroy(&attr);
 	}
-	~RecursiveMutex() throw() { pthread_mutex_destroy(&mtx); }
-	void lock() throw() { pthread_mutex_lock(&mtx); }
-	void unlock() throw() { pthread_mutex_unlock(&mtx); }
+	~RecursiveMutex() noexcept { pthread_mutex_destroy(&mtx); }
+	void lock() noexcept { pthread_mutex_lock(&mtx); }
+	void unlock() noexcept { pthread_mutex_unlock(&mtx); }
 
 	typedef ScopedLock<RecursiveMutex> Lock;
 private:
@@ -82,16 +82,16 @@ private:
 
 class FastMutex : private boost::noncopyable {
 public:
-	FastMutex() throw() {
+	FastMutex() noexcept {
 		pthread_mutexattr_t attr;
 		pthread_mutexattr_init(&attr);
 		pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
 		pthread_mutex_init(&mtx, &attr);
 		pthread_mutexattr_destroy(&attr);
 	}
-	~FastMutex() throw() { pthread_mutex_destroy(&mtx); }
-	void lock() throw() { pthread_mutex_lock(&mtx); }
-	void unlock() throw() { pthread_mutex_unlock(&mtx); }
+	~FastMutex() noexcept { pthread_mutex_destroy(&mtx); }
+	void lock() noexcept { pthread_mutex_lock(&mtx); }
+	void unlock() noexcept { pthread_mutex_unlock(&mtx); }
 
 	typedef ScopedLock<FastMutex> Lock;
 

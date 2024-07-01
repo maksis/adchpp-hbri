@@ -137,7 +137,7 @@ string SimpleXML::Tag::toXML(int indent) {
 	}
 }
 
-bool SimpleXML::findChild(const string& aName) const throw() {
+bool SimpleXML::findChild(const string& aName) const noexcept {
 	dcassert(current != NULL);
 
 	if(found && currentChild != current->children.end())
@@ -153,14 +153,14 @@ bool SimpleXML::findChild(const string& aName) const throw() {
 	return false;
 }
 
-void SimpleXML::stepIn() const throw(SimpleXMLException) {
+void SimpleXML::stepIn() const {
 	checkChildSelected();
 	current = *currentChild;
 	currentChild = current->children.begin();
 	found = false;
 }
 
-void SimpleXML::stepOut() const throw(SimpleXMLException) {
+void SimpleXML::stepOut() const {
 	if(current == root)
 		throw SimpleXMLException("Already at lowest level");
 
@@ -172,7 +172,7 @@ void SimpleXML::stepOut() const throw(SimpleXMLException) {
 	found = true;
 }
 
-string::size_type SimpleXML::Tag::loadAttribs(const string& tmp, string::size_type start) throw(SimpleXMLException) {
+string::size_type SimpleXML::Tag::loadAttribs(const string& tmp, string::size_type start) {
 	string::size_type i = start;
 	string::size_type j;
 	for(;;) {
@@ -198,7 +198,7 @@ string::size_type SimpleXML::Tag::loadAttribs(const string& tmp, string::size_ty
 	}
 }
 
-string::size_type SimpleXML::Tag::fromXML(const string& tmp, string::size_type start, int aa, bool isRoot /* = false */) throw(SimpleXMLException) {
+string::size_type SimpleXML::Tag::fromXML(const string& tmp, string::size_type start, int aa, bool isRoot /* = false */) {
 	string::size_type i = start;
 	string::size_type j;
 
@@ -299,7 +299,7 @@ string::size_type SimpleXML::Tag::fromXML(const string& tmp, string::size_type s
 	}
 }
 
-void SimpleXML::addTag(const string& aName, const string& aData /* = "" */) throw(SimpleXMLException) {
+void SimpleXML::addTag(const string& aName, const string& aData /* = "" */) {
 	if(aName.empty()) {
 		throw SimpleXMLException("Empty tag names not allowed");
 	}
@@ -317,20 +317,20 @@ void SimpleXML::addTag(const string& aName, const string& aData /* = "" */) thro
 	}
 }
 
-void SimpleXML::addAttrib(const string& aName, const string& aData) throw(SimpleXMLException) {
+void SimpleXML::addAttrib(const string& aName, const string& aData) {
 	if(current==root)
 		throw SimpleXMLException("No tag is currently selected");
 
 	current->attribs.push_back(make_pair(aName, aData));
 }
 
-void SimpleXML::addChildAttrib(const string& aName, const string& aData) throw(SimpleXMLException) {
+void SimpleXML::addChildAttrib(const string& aName, const string& aData) {
 	checkChildSelected();
 
 	(*currentChild)->attribs.push_back(make_pair(aName, aData));
 }
 
-void SimpleXML::fromXML(const string& aXML) throw(SimpleXMLException) {
+void SimpleXML::fromXML(const string& aXML) {
 	if(root) {
 		delete root;
 	}

@@ -360,7 +360,7 @@ void SocketManager::closeFactories() {
 	factories.clear();
 }
 
-void SocketManager::addJob(const Callback& callback) throw() {
+void SocketManager::addJob(const Callback& callback) noexcept {
 	io.post(callback);
 }
 
@@ -430,7 +430,7 @@ void SocketManager::shutdown() {
 	io.stop();
 }
 
-void SocketManager::onLoad(const SimpleXML& xml) throw() {
+void SocketManager::onLoad(const SimpleXML& xml) noexcept {
 	servers.clear();
 }
 

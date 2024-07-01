@@ -36,42 +36,42 @@ public:
 	ADCHPP_DLL SimpleXML(int numAttribs = 0);
 	ADCHPP_DLL ~SimpleXML();
 
-	ADCHPP_DLL void addTag(const std::string& aName, const std::string& aData = Util::emptyString) throw(SimpleXMLException);
-	void addTag(const std::string& aName, int aData) throw(SimpleXMLException) {
+	ADCHPP_DLL void addTag(const std::string& aName, const std::string& aData = Util::emptyString);
+	void addTag(const std::string& aName, int aData) {
 		addTag(aName, Util::toString(aData));
 	}
-	void addTag(const std::string& aName, int64_t aData) throw(SimpleXMLException) {
+	void addTag(const std::string& aName, int64_t aData) {
 		addTag(aName, Util::toString(aData));
 	}
 
 	template<typename T>
-	void addAttrib(const std::string& aName, const T& aData) throw(SimpleXMLException) {
+	void addAttrib(const std::string& aName, const T& aData) {
 		addAttrib(aName, Util::toString(aData));
 	}
 
-	ADCHPP_DLL void addAttrib(const std::string& aName, const std::string& aData) throw(SimpleXMLException);
+	ADCHPP_DLL void addAttrib(const std::string& aName, const std::string& aData);
 
 	template <typename T>
-    void addChildAttrib(const std::string& aName, const T& aData) throw(SimpleXMLException) {
+    void addChildAttrib(const std::string& aName, const T& aData) {
 		addChildAttrib(aName, Util::toString(aData));
 	}
-	ADCHPP_DLL void addChildAttrib(const std::string& aName, const std::string& aData) throw(SimpleXMLException);
+	ADCHPP_DLL void addChildAttrib(const std::string& aName, const std::string& aData);
 
 	const std::string& getData() const {
 		dcassert(current != NULL);
 		return current->data;
 	}
 
-	ADCHPP_DLL void stepIn() const throw(SimpleXMLException);
-	ADCHPP_DLL void stepOut() const throw(SimpleXMLException);
+	ADCHPP_DLL void stepIn() const;
+	ADCHPP_DLL void stepOut() const;
 
-	void resetCurrentChild() const throw() {
+	void resetCurrentChild() const noexcept {
 		found = false;
 		dcassert(current != NULL);
 		currentChild = current->children.begin();
 	}
 
-	ADCHPP_DLL bool findChild(const std::string& aName) const throw();
+	ADCHPP_DLL bool findChild(const std::string& aName) const noexcept;
 
 	const std::string& getChildName() const {
 		checkChildSelected();
@@ -103,7 +103,7 @@ public:
 		return (tmp.size() > 0) && tmp[0] == '1';
 	}
 
-	ADCHPP_DLL void fromXML(const std::string& aXML) throw(SimpleXMLException);
+	ADCHPP_DLL void fromXML(const std::string& aXML);
 	std::string toXML() { return (!root->children.empty()) ? root->children[0]->toXML(0) : Util::emptyString; }
 
 	ADCHPP_DLL static void escape(std::string& aString, bool aAttrib, bool aLoading = false);
@@ -157,8 +157,8 @@ private:
 		}
 		ADCHPP_DLL std::string toXML(int indent);
 
-		std::string::size_type fromXML(const std::string& tmp, std::string::size_type start, int aa, bool isRoot = false) throw(SimpleXMLException);
-		std::string::size_type loadAttribs(const std::string& tmp, std::string::size_type start) throw(SimpleXMLException);
+		std::string::size_type fromXML(const std::string& tmp, std::string::size_type start, int aa, bool isRoot = false);
+		std::string::size_type loadAttribs(const std::string& tmp, std::string::size_type start);
 
 		void appendAttribString(std::string& tmp);
 		/** Delete all children! */
@@ -177,7 +177,7 @@ private:
 
 	mutable Tag::Iter currentChild;
 
-	void checkChildSelected() const throw() {
+	void checkChildSelected() const noexcept {
 		dcassert(current != NULL);
 		dcassert(currentChild != current->children.end());
 	}

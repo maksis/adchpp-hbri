@@ -79,7 +79,7 @@ SocketManager &Core::getSocketManager() { return *sm; }
 PluginManager &Core::getPluginManager() { return *pm; }
 ClientManager &Core::getClientManager() { return *cm; }
 
-void Core::addJob(const Callback& callback) throw() { sm->addJob(callback); }
+void Core::addJob(const Callback& callback) noexcept { sm->addJob(callback); }
 
 void Core::addJob(const long msec, const Callback& callback) { sm->addJob(msec, callback); }
 
