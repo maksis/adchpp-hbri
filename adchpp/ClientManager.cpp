@@ -635,8 +635,7 @@ bool validateNickF(wchar_t c) { /// @todo lambda
 		return true;
 	}
 
-	static std::locale loc = locale();
-	return !std::isprint(c, loc);
+	return !std::iswprint(c);
 }
 
 bool validateNick(const string& nick) {
@@ -646,7 +645,7 @@ bool validateNick(const string& nick) {
 
 	// avoid impersonators
 	std::wstring nickW =
-		std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(nick);
+		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>().from_bytes(nick);
 	if(std::find_if(nickW.begin(), nickW.end(), validateNickF) != nickW.end()) {
 		return false;
 	}
