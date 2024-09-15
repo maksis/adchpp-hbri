@@ -15,7 +15,7 @@ gcc_flags = {
 		'-fexceptions',
 	],
 	'debug': [], 
-	'release' : ['-O3', '-fno-ipa-cp-clone']
+	'release' : ['-O3']
 }
 
 gcc_xxflags = {
