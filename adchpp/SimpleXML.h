@@ -152,7 +152,7 @@ private:
 		}
 
 		const std::string& getAttrib(const std::string& aName, const std::string& aDefault = Util::emptyString) {
-			AttribIter i = find_if(attribs.begin(), attribs.end(), CompareFirst<std::string, std::string>(aName));
+			auto i = std::ranges::find(attribs | std::views::keys, aName).base();
 			return (i == attribs.end()) ? aDefault : i->second;
 		}
 		ADCHPP_DLL std::string toXML(int indent);

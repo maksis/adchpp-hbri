@@ -69,6 +69,13 @@ void ClientManager::prepareSupports(bool addHbri) {
 		hub.addSupports(AdcCommand::toFourCC("HBRI"));
 }
 
+void ClientManager::failHBRI(Client& mainCC) {
+	mainCC.unsetFlag(Entity::FLAG_VALIDATE_HBRI);
+	mainCC.stripProtocolSupports();
+	if (mainCC.getState() == Entity::STATE_HBRI)
+		enterNormal(mainCC, true, true);
+}
+
 void ClientManager::onTimerSecond() {
 	// HBRI
 	auto timeoutHbri = time::now() - time::millisec(hbriTimeout);
@@ -80,13 +87,11 @@ void ClientManager::onTimerSecond() {
 			dcdebug("ClientManager: HBRI timeout in state %d\n", cc->getState());
 
 			std::string proto = cc->isV6() ? "IPv4" : "IPv6";
+
 			AdcCommand sta(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_HBRI_TIMEOUT, proto + " validation timed out");
 			cc->send(sta);
 
-			cc->unsetFlag(Entity::FLAG_VALIDATE_HBRI);
-			cc->stripProtocolSupports();
-			if (cc->getState() == Entity::STATE_HBRI)
-				enterNormal(*cc, true, true);
+			failHBRI(*cc);
 		} else {
 			i++;
 		}
@@ -306,8 +311,9 @@ bool ClientManager::verifyINF(Entity& c, AdcCommand& cmd) noexcept {
 	Client* cc = dynamic_cast<Client*>(&c);
 
 	if(cc) {
-		if(!verifyIp(*cc, cmd, false))
+		if (!verifyIp(*cc, cmd, false)) {
 			return false;
+		}
 	}
 
 	c.updateFields(cmd);
@@ -420,7 +426,8 @@ bool ClientManager::handle(AdcCommand::TCP, Entity& c, AdcCommand& cmd) noexcept
 	if(cmd.getParam("TO", 0, token)) {
 		auto p = hbriTokens.find(token);
 		if (p != hbriTokens.end()) {
-			Client* mainCC = dynamic_cast<Client*>(p->second.first);
+			auto mainCC = dynamic_cast<Client*>(p->second.first);
+			auto hbriCC = dynamic_cast<Client*>(&c);
 			mainCC->unsetFlag(Entity::FLAG_VALIDATE_HBRI);
 
 			if (mainCC->getState() != Entity::STATE_HBRI && mainCC->getState() != Entity::STATE_NORMAL) {
@@ -430,8 +437,20 @@ bool ClientManager::handle(AdcCommand::TCP, Entity& c, AdcCommand& cmd) noexcept
 
 			hbriTokens.erase(p);
 
-			if (!verifyIp(*dynamic_cast<Client*>(&c), cmd, true))
+			if (mainCC->isV6() == hbriCC->isV6()) {
+				// Hmm..
+				AdcCommand sta(AdcCommand::SEV_RECOVERABLE, AdcCommand::ERROR_HBRI_TIMEOUT, "Validation request was received over the wrong IP protocol");
+				hbriCC->send(sta);
+				failHBRI(*hbriCC);
+
+				c.disconnect(Util::REASON_INVALID_IP, "Validation request was received over the wrong IP protocol");
 				return false;
+			}
+
+			if (!verifyIp(*hbriCC, cmd, true)) {
+				failHBRI(*mainCC);
+				return false;
+			}
 
 			// disconnect the validation connection
 			AdcCommand sta(AdcCommand::SEV_SUCCESS, AdcCommand::SUCCESS, "Validation succeed");
@@ -440,11 +459,11 @@ bool ClientManager::handle(AdcCommand::TCP, Entity& c, AdcCommand& cmd) noexcept
 
 			// remove extra parameters
 			auto& params = cmd.getParameters();
-			const auto& allowed = dynamic_cast<Client*>(&c)->isV6() ? allowedV6 : allowedV4;
+			const auto& allowed = hbriCC->isV6() ? allowedV6 : allowedV4;
 
-			params.erase(boost::remove_if(params, [&](const string& s) {
+			std::erase_if(params, [&](const string& s) {
 				return find(allowed, allowed + allowedCount, s.substr(0, 2)) == &allowed[allowedCount];
-			}), params.end());
+			});
 
 			// update the fields for the main entity
 			mainCC->updateFields(cmd);
@@ -476,14 +495,86 @@ bool ClientManager::handle(AdcCommand::TCP, Entity& c, AdcCommand& cmd) noexcept
 	return true;
 }
 
+template<typename IPClass> 
+std::optional<IPClass> parseParamIp(const string& aIP) {
+	if (aIP.empty()) {
+		return IPClass::any();
+	}
+
+	try {
+		return IPClass::from_string(aIP);
+	} catch (const boost::system::system_error&) {
+		printf("Error when reading IP %s\n", aIP.c_str());
+		return std::nullopt;
+	}
+}
+
+string formatIpProtocol(bool v6) {
+	return v6 ? "IPv6" : "IPv4";
+}
+
+template<typename PrimaryIPClass, typename SecondaryIpClass>
+bool validateIP(AdcCommand& cmd, const PrimaryIPClass& remoteAddress, bool v6, bool& validateSecondary_, string& error_) {
+	using namespace boost::asio::ip;
+
+	auto isLocalUser = Util::isPrivateIp(remoteAddress.to_string(), v6);
+
+	// Primary
+	{
+		auto tcpIpParamName = v6 ? "I6" : "I4";
+		string paramIpStr;
+		if (cmd.getParam(tcpIpParamName, 0, paramIpStr)) {
+			auto paramIp = parseParamIp<PrimaryIPClass>(paramIpStr);
+			if (!paramIp) {
+				// Fatal
+				error_ = "The configured IP " + paramIpStr + " isn't a valid " + formatIpProtocol(v6) + " address";
+				return false;
+			}
+
+			// Something was provided, validate it
+			if (paramIpStr.empty() || paramIp == PrimaryIPClass::any()) {
+				cmd.delParam(tcpIpParamName, 0);
+				cmd.addParam(tcpIpParamName, remoteAddress.to_string());
+			} else if (*paramIp != remoteAddress && !isLocalUser) {
+				error_ = "Your IP is " + remoteAddress.to_string() + ", reconfigure your client settings";
+				return false;
+			}
+		} else {
+			// Nothing was provided
+			cmd.addParam(tcpIpParamName, remoteAddress.to_string());
+		}
+	}
+
+	// Secondary
+	string secondaryIpStr;
+	auto tcpIpSecondaryParamName = !v6 ? "I6" : "I4";
+	validateSecondary_ = cmd.getParam(tcpIpSecondaryParamName, 0, secondaryIpStr) && !secondaryIpStr.empty();
+
+	auto paramIpSecondary = parseParamIp<SecondaryIpClass>(secondaryIpStr);
+	if (!paramIpSecondary) {
+		error_ = "The configured IP " + secondaryIpStr + " isn't a valid " + formatIpProtocol(!v6) + " address";
+		return false;
+	}
+
+	// Keep the secondary IP (if there is one) for local users, it needs to be validated otherwise
+	if (!isLocalUser || secondaryIpStr.empty() || *paramIpSecondary == SecondaryIpClass::any()) {
+		auto udpPortSecondaryParam = !v6 ? "U6" : "U4";
+		cmd.delParam(udpPortSecondaryParam, 0);
+		cmd.delParam(tcpIpSecondaryParamName, 0);
+	}
+
+	return true;
+}
+
 bool ClientManager::verifyIp(Client& c, AdcCommand& cmd, bool isHbriConn) noexcept {
 	if(c.isSet(Entity::FLAG_OK_IP))
 		return true;
 
+	dcdebug("%s verifying IP %s\n", AdcCommand::fromSID(c.getSID()).c_str(), c.getIp().c_str());
+
 	using namespace boost::asio::ip;
 
     address remoteAddress;
-
     try { 
 		remoteAddress = address::from_string(c.getIp());
 	} catch(const boost::system::system_error&) {
@@ -491,68 +582,22 @@ bool ClientManager::verifyIp(Client& c, AdcCommand& cmd, bool isHbriConn) noexce
 		return false;
     }
 
-	std::string ip;
-
-	bool doValidation = false;
+	auto validateSecondaryProtocol = false;
+	string error;
 	if (!c.isV6()) {
-		auto v4 = remoteAddress.is_v4() ? remoteAddress.to_v4() : remoteAddress.to_v6().to_v4();
-
-		if (cmd.getParam("I4", 0, ip)) {
-			// Validate IPv4
-			dcdebug("%s verifying IP %s\n", AdcCommand::fromSID(c.getSID()).c_str(), ip.c_str());
-			if (ip.empty() || address_v4::from_string(ip) == address_v4::any()) {
-				cmd.delParam("I4", 0);
-				cmd.addParam("I4", c.getIp());
-			} else if(address_v4::from_string(ip) != v4 && !Util::isPrivateIp(c.getIp(), false)) {
-				disconnect(c, Util::REASON_INVALID_IP, "Your IP is " + c.getIp() +
-					", reconfigure your client settings", AdcCommand::ERROR_BAD_IP, "IP" + c.getIp());
-				return false;
-			}
-		} else if (!isHbriConn) {
-			// Nothing was provided
-			c.setField("I4", v4.to_string());
-		}
-
-		// Handle IPv6
-		string v6Ip;
-		doValidation = !isHbriConn && cmd.getParam("I6", 0, v6Ip) && !v6Ip.empty();
-
-		// Keep the secondary IP (if there is one) for local users
-		if (v6Ip.empty() || address_v6::from_string(v6Ip) == address_v6::any() || !Util::isPrivateIp(c.getIp(), false)) {
-			cmd.delParam("U6", 0);
-			cmd.delParam("I6", 0);
-		}
+		auto addressV4 = remoteAddress.is_v4() ? remoteAddress.to_v4() : remoteAddress.to_v6().to_v4();
+		validateIP<address_v4, address_v6>(cmd, addressV4, false, validateSecondaryProtocol, error);
 	} else {
-		if (cmd.getParam("I6", 0, ip)) {
-			// Validate IPv6
-			dcdebug("%s verifying IPv6 %s\n", AdcCommand::fromSID(c.getSID()).c_str(), ip.c_str());
-			if (ip.empty() || address_v6::from_string(ip) == address_v6::any()) {
-				cmd.delParam("I6", 0);
-				cmd.addParam("I6", c.getIp());
-			} else if(address_v6::from_string(ip) != remoteAddress.to_v6() && !Util::isPrivateIp(c.getIp(), true)) {
-				disconnect(c, Util::REASON_INVALID_IP, "Your IP is " + c.getIp() +
-					", reconfigure your client settings", AdcCommand::ERROR_BAD_IP, "IP" + c.getIp());
-				return false;
-			}
-		} else if (!isHbriConn) {
-			// Nothing was provided
-			c.setField("I6", c.getIp());
-		}
-
-		{
-			// Handle IPv4
-			string v4Ip;
-			doValidation = !isHbriConn && cmd.getParam("I4", 0, v4Ip) && !v4Ip.empty();
-
-			// Keep the secondary IP (if there is one) for local users
-			if (v4Ip.empty() || address_v4::from_string(v4Ip) == address_v4::any() || !Util::isPrivateIp(c.getIp(), true)) {
-				cmd.delParam("I4", 0);
-				cmd.delParam("U4", 0);
-			}
-		}
+		auto addressV6 = remoteAddress.to_v6();
+		validateIP<address_v6, address_v4>(cmd, addressV6, true, validateSecondaryProtocol, error);
 	}
 
-	if (doValidation) {
+	if (!error.empty()) {
+		disconnect(c, Util::REASON_INVALID_IP, error, AdcCommand::ERROR_BAD_IP, "IP" + c.getIp());
+		return false;
+	}
+
+	if (!isHbriConn && validateSecondaryProtocol) {
 		if (c.getState() == Entity::STATE_NORMAL) {
 			// Connected user with new params, perform new validation
 			sendHBRI(c);
@@ -639,14 +684,14 @@ bool validateNickF(wchar_t c) { /// @todo lambda
 }
 
 bool validateNick(const string& nick) {
-	if(!Util::validateCharset(nick, 33)) { // chars < 33 forbidden (including the space char)
+	if (!Util::validateCharset(nick, 33)) { // chars < 33 forbidden (including the space char)
 		return false;
 	}
 
 	// avoid impersonators
-	std::wstring nickW =
+	auto nickW =
 		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>().from_bytes(nick);
-	if(std::find_if(nickW.begin(), nickW.end(), validateNickF) != nickW.end()) {
+	if(std::ranges::find_if(nickW, validateNickF) != nickW.end()) {
 		return false;
 	}
 
@@ -769,14 +814,14 @@ void ClientManager::removeLogins(Entity& e) noexcept {
 	}
 
 	{
-		auto i = find_if(logins.begin(), logins.end(), CompareFirst<Client*, time::ptime>(c));
+		auto i = std::ranges::find(logins | std::views::keys, c).base();
 		if (i != logins.end()) {
 			logins.erase(i);
 		}
 	}
 
 	if (e.hasSupport(AdcCommand::toFourCC("HBRI"))) {
-		auto i = find_if(hbriTokens | map_values, CompareFirst<Entity*, time::ptime>(c)).base();
+		auto i = std::ranges::find_if(hbriTokens | views::values, CompareFirst<Entity*, time::ptime>(c)).base();
 		if (i != hbriTokens.end()) {
 			hbriTokens.erase(i);
 		}

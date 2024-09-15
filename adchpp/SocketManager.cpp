@@ -297,13 +297,13 @@ void SocketManager::prepareProtocol(ServerInfoPtr& si, bool v6) {
 		using ip::tcp;
 		tcp::resolver r(io);
 
-		// Resolve the public address
+		// Check if the configured addresses are valid
 		string& hubAddress = v6 ? si->address6 : si->address4;
 		if (!hubAddress.empty()) {
 			try {
 				auto remote = r.resolve(tcp::resolver::query(v6 ? tcp::v6() : tcp::v4(), hubAddress, si->port,
 					tcp::resolver::query::address_configured | tcp::resolver::query::passive));
-				hubAddress = remote->endpoint().address().to_string();
+
 				v6 ? hasV6Address = true : hasV4Address = true;
 			} catch (const std::exception& e) {
 				LOG(SocketManager::className, "Error when resolving the " + proto + " hub address " + hubAddress + ": " + e.what());

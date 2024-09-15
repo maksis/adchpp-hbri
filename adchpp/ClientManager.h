@@ -246,6 +246,8 @@ private:
 
 	ClientManager(Core &core) noexcept;
 	void onTimerSecond();
+
+	void failHBRI(Client& mainmCC);
 };
 
 }

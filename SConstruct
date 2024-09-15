@@ -19,7 +19,7 @@ gcc_flags = {
 }
 
 gcc_xxflags = {
-	'common' : ['-std=gnu++0x'],
+	'common' : ['-std=c++20'],
 	'debug' : [],
 	'release' : []
 }
@@ -46,7 +46,7 @@ msvc_flags = {
 # remove it when building executables!
 
 msvc_xxflags = {
-	'common' : [],
+	'common' : ['/std:c++20', '/FS'],
 	'debug' : [],
 	'release' : []
 }

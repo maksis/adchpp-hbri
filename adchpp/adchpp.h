@@ -49,6 +49,8 @@
 #include <memory>
 #include <algorithm>
 #include <map>
+#include <optional>
+#include <ranges>
 #include <unordered_map>
 #include <unordered_set>
 

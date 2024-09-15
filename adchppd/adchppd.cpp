@@ -36,6 +36,7 @@ using namespace std;
 
 void loadXML(Core &core, const string& aFileName)
 {
+	printf("Loading settings from %s\n", aFileName.c_str());
 	try {
 		SimpleXML xml;
 
@@ -99,6 +100,7 @@ void loadXML(Core &core, const string& aFileName)
 						server->TLSParams.dh = File::makeAbsolutePath(xml.getChildAttrib("DHParams"));
 					}
 
+					printf("Loaded server for port %s (secure: %s)\n", server->port.c_str(), server->secure() ? "true" : "false");
 #ifndef HAVE_OPENSSL
 					if(server->secure())
 						fprintf(stderr, "Error listening on port %s: This ADCH++ hasn't been compiled with support for secure connections\n", server->port.c_str());
