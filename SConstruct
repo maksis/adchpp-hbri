@@ -156,7 +156,6 @@ if dev.env['systemboost']:
 	def checkBoostLib(lib, header, call): return (checkBoostLib_(lib, header, call) or
 			checkBoostLib_(lib + '-mt', header, call)) # Cygwin boost libs are named that way
 	if (not conf.CheckBoost('1.49.0') or
-			not checkBoostLib('libboost_system', 'boost/system/error_code.hpp', 'boost::system::error_code ec;') or
 			not checkBoostLib('libboost_date_time', 'boost/date_time/posix_time/posix_time.hpp', 'boost::posix_time::microsec_clock::local_time();') or
 			not checkBoostLib('libboost_locale', 'boost/locale.hpp', 'boost::locale::generator().generate("");')):
 		raise Exception('Cannot use system boost libraries - try with systemboost=0')
@@ -250,14 +249,6 @@ if not env.GetOption('clean') and not env.GetOption("help"):
 env.Append(LIBPATH = env.Dir(dev.get_build_root() + 'bin/').abspath)
 if not dev.is_win32():
 	dev.env.Append(RPATH = env.Literal('\\$$ORIGIN'))
-
-if dev.env['systemboost']:
-	env.Append(LIBS = sysBoostLibs)
-
-else:
-	dev.boost_system = dev.build('boost/libs/system/src/')
-
-	env.Append(LIBS = ['aboost_system'])
 
 dev.adchpp = dev.build('adchpp/')
 

@@ -24,20 +24,19 @@
 #include "forward.h"
 #include "ServerInfo.h"
 
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/deadline_timer.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 
 namespace adchpp {
 
 struct SocketStats {
-	SocketStats() : queueCalls(0), queueBytes(0), sendCalls(0), sendBytes(0), recvCalls(0), recvBytes(0) { }
-
-	size_t queueCalls;
-	int64_t queueBytes;
-	size_t sendCalls;
-	int64_t sendBytes;
-	int64_t recvCalls;
-	int64_t recvBytes;
+	size_t queueCalls = 0;
+	int64_t queueBytes = 0;
+	size_t sendCalls = 0;
+	int64_t sendBytes = 0;
+	int64_t recvCalls = 0;
+	int64_t recvBytes = 0;
 };
 
 class SocketManager {
@@ -99,8 +98,10 @@ private:
 
 	Core &core;
 
-	boost::asio::io_service io;
-	std::unique_ptr<boost::asio::io_service::work> work;
+	boost::asio::io_context io;
+
+	using work_type = boost::asio::executor_work_guard<boost::asio::io_context::executor_type>;
+	std::unique_ptr<work_type> work;
 
 	SocketStats stats;
 
@@ -128,8 +129,8 @@ private:
 
 	SocketManager(Core &core);
 
-	bool hasV4Address;
-	bool hasV6Address;
+	bool hasV4Address = false;
+	bool hasV6Address = false;
 };
 
 }

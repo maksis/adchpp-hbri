@@ -36,15 +36,6 @@
 #include <boost/asio/ip/address_v4.hpp>
 #include <boost/asio/ip/address_v6.hpp>
 
-#include <boost/range/algorithm/find.hpp>
-#include <boost/range/algorithm/find_if.hpp>
-#include <boost/range/algorithm/remove_if.hpp>
-#include <boost/range/adaptor/map.hpp>
-
-using boost::adaptors::map_values;
-using boost::range::find;
-using boost::range::find_if;
-
 namespace adchpp {
 
 using namespace std;
@@ -495,14 +486,14 @@ bool ClientManager::handle(AdcCommand::TCP, Entity& c, AdcCommand& cmd) noexcept
 	return true;
 }
 
-template<typename IPClass> 
-std::optional<IPClass> parseParamIp(const string& aIP) {
+template<typename IPClass, typename IpParser>
+std::optional<IPClass> parseParamIp(const string& aIP, const IpParser& aIpParser) {
 	if (aIP.empty()) {
 		return IPClass::any();
 	}
 
 	try {
-		return IPClass::from_string(aIP);
+		return aIpParser(aIP);
 	} catch (const boost::system::system_error&) {
 		printf("Error when reading IP %s\n", aIP.c_str());
 		return std::nullopt;
@@ -513,8 +504,10 @@ string formatIpProtocol(bool v6) {
 	return v6 ? "IPv6" : "IPv4";
 }
 
-template<typename PrimaryIPClass, typename SecondaryIpClass>
-bool validateIP(AdcCommand& cmd, const PrimaryIPClass& remoteAddress, bool v6, bool& validateSecondary_, string& error_) {
+template<typename PrimaryIPClass, typename SecondaryIpClass, typename PrimaryIpParser, typename SecondaryIpParser>
+bool validateIP(AdcCommand& cmd, const PrimaryIPClass& remoteAddress, bool v6, bool& validateSecondary_, string& error_, 
+	const PrimaryIpParser& aIpParserPrimary, const SecondaryIpParser& aIpParserSecondary
+) {
 	using namespace boost::asio::ip;
 
 	auto isLocalUser = Util::isPrivateIp(remoteAddress.to_string(), v6);
@@ -524,7 +517,7 @@ bool validateIP(AdcCommand& cmd, const PrimaryIPClass& remoteAddress, bool v6, b
 		auto tcpIpParamName = v6 ? "I6" : "I4";
 		string paramIpStr;
 		if (cmd.getParam(tcpIpParamName, 0, paramIpStr)) {
-			auto paramIp = parseParamIp<PrimaryIPClass>(paramIpStr);
+			auto paramIp = parseParamIp<PrimaryIPClass>(paramIpStr, aIpParserPrimary);
 			if (!paramIp) {
 				// Fatal
 				error_ = "The configured IP " + paramIpStr + " isn't a valid " + formatIpProtocol(v6) + " address";
@@ -532,7 +525,7 @@ bool validateIP(AdcCommand& cmd, const PrimaryIPClass& remoteAddress, bool v6, b
 			}
 
 			// Something was provided, validate it
-			if (paramIpStr.empty() || paramIp == PrimaryIPClass::any()) {
+			if (paramIpStr.empty() || *paramIp == PrimaryIPClass::any()) {
 				cmd.delParam(tcpIpParamName, 0);
 				cmd.addParam(tcpIpParamName, remoteAddress.to_string());
 			} else if (*paramIp != remoteAddress && !isLocalUser) {
@@ -550,7 +543,7 @@ bool validateIP(AdcCommand& cmd, const PrimaryIPClass& remoteAddress, bool v6, b
 	auto tcpIpSecondaryParamName = !v6 ? "I6" : "I4";
 	validateSecondary_ = cmd.getParam(tcpIpSecondaryParamName, 0, secondaryIpStr) && !secondaryIpStr.empty();
 
-	auto paramIpSecondary = parseParamIp<SecondaryIpClass>(secondaryIpStr);
+	auto paramIpSecondary = parseParamIp<SecondaryIpClass>(secondaryIpStr, aIpParserSecondary);
 	if (!paramIpSecondary) {
 		error_ = "The configured IP " + secondaryIpStr + " isn't a valid " + formatIpProtocol(!v6) + " address";
 		return false;
@@ -566,6 +559,9 @@ bool validateIP(AdcCommand& cmd, const PrimaryIPClass& remoteAddress, bool v6, b
 	return true;
 }
 
+boost::asio::ip::address_v4 parseAddressV4(const std::string& s) { return boost::asio::ip::make_address_v4(s); };
+boost::asio::ip::address_v6 parseAddressV6(const std::string& s) { return boost::asio::ip::make_address_v6(s); };
+
 bool ClientManager::verifyIp(Client& c, AdcCommand& cmd, bool isHbriConn) noexcept {
 	if(c.isSet(Entity::FLAG_OK_IP))
 		return true;
@@ -574,9 +570,9 @@ bool ClientManager::verifyIp(Client& c, AdcCommand& cmd, bool isHbriConn) noexce
 
 	using namespace boost::asio::ip;
 
-    address remoteAddress;
-    try { 
-		remoteAddress = address::from_string(c.getIp());
+	address remoteAddress;
+	try {
+		remoteAddress = make_address(c.getIp());
 	} catch(const boost::system::system_error&) {
 		printf("Error when reading IP %s\n", c.getIp().c_str());
 		return false;
@@ -585,11 +581,12 @@ bool ClientManager::verifyIp(Client& c, AdcCommand& cmd, bool isHbriConn) noexce
 	auto validateSecondaryProtocol = false;
 	string error;
 	if (!c.isV6()) {
-		auto addressV4 = remoteAddress.is_v4() ? remoteAddress.to_v4() : remoteAddress.to_v6().to_v4();
-		validateIP<address_v4, address_v6>(cmd, addressV4, false, validateSecondaryProtocol, error);
+		// auto addressV4 = remoteAddress.is_v4() ? remoteAddress.to_v4() : remoteAddress.to_v6().to_v4();
+		auto addressV4 = remoteAddress.to_v4();
+		validateIP<address_v4, address_v6>(cmd, addressV4, false, validateSecondaryProtocol, error, parseAddressV4, parseAddressV6);
 	} else {
 		auto addressV6 = remoteAddress.to_v6();
-		validateIP<address_v6, address_v4>(cmd, addressV6, true, validateSecondaryProtocol, error);
+		validateIP<address_v6, address_v4>(cmd, addressV6, true, validateSecondaryProtocol, error, parseAddressV6, parseAddressV4);
 	}
 
 	if (!error.empty()) {

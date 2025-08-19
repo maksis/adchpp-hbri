@@ -279,8 +279,7 @@ bool ManagedSocket::getHbriParams(AdcCommand& cmd) const noexcept {
 bool ManagedSocket::isV6() const noexcept {
 	using namespace boost::asio::ip;
 
-	address remote;
-	remote = address::from_string(ip);
+	auto remote = make_address(ip);
 	if (remote.is_v4() || (remote.is_v6() && remote.to_v6().is_v4_mapped()))
 		return false;
 

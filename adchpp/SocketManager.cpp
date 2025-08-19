@@ -25,7 +25,10 @@
 #include "ManagedSocket.h"
 #include "ServerInfo.h"
 #include "SimpleXML.h"
+// #include "SSLSocketManager.h"
 #include "Core.h"
+
+#include <boost/asio/post.hpp>
 
 #ifdef HAVE_OPENSSL
 #include <boost/asio/ssl.hpp>
@@ -48,22 +51,21 @@ core(core),
 bufferSize(1024),
 maxBufferSize(16 * 1024),
 overflowTimeout(60 * 1000),
-disconnectTimeout(10 * 1000),
-hasV4Address(false),
-hasV6Address(false)
+disconnectTimeout(10 * 1000)
 {
 }
 
 const string SocketManager::className = "SocketManager";
 
+
 template<typename T>
 class SocketStream : public AsyncStream {
 public:
 	template<typename X>
-	SocketStream(X& x) : sock(x) { }
+	SocketStream(X& x) : sock(x) {}
 
 	template<typename X, typename Y>
-	SocketStream(X& x, Y& y) : sock(x, y) { }
+	SocketStream(X& x, Y& y) : sock(x, y) {}
 
 	~SocketStream() { dcdebug("SocketStream deleted\n"); }
 
@@ -78,11 +80,11 @@ public:
 
 	virtual std::string getIp() {
 		try { return sock.lowest_layer().remote_endpoint().address().to_string(); }
-		catch(const system_error&) { return Util::emptyString; }
+		catch (const system_error&) { return Util::emptyString; }
 	}
 
 	virtual void prepareRead(const BufferPtr& buf, const Handler& handler) {
-		if(buf) {
+		if (buf) {
 			sock.async_read_some(buffer(buf->data(), buf->size()), handler);
 		} else {
 			sock.async_read_some(null_buffers(), handler);
@@ -94,7 +96,7 @@ public:
 	}
 
 	virtual void write(const BufferList& bufs, const Handler& handler) {
-		if(bufs.size() == 1) {
+		if (bufs.size() == 1) {
 			sock.async_write_some(buffer(bufs[0]->data(), bufs[0]->size()), handler);
 		} else {
 			size_t n = std::min(bufs.size(), static_cast<size_t>(64));
@@ -103,7 +105,7 @@ public:
 
 			const size_t maxBytes = 1024;
 
-			for(size_t i = 0, total = 0; i < n && total < maxBytes; ++i) {
+			for (size_t i = 0, total = 0; i < n && total < maxBytes; ++i) {
 				size_t left = maxBytes - total;
 				size_t bytes = min(bufs[i]->size(), left);
 				buffers.push_back(const_buffer(bufs[i]->data(), bytes));
@@ -121,15 +123,15 @@ class SimpleSocketStream : public SocketStream<ip::tcp::socket> {
 	typedef SocketStream<ip::tcp::socket> Stream;
 
 	struct ShutdownHandler {
-		ShutdownHandler(const Handler& h) : h(h) { }
+		ShutdownHandler(const Handler& h) : h(h) {}
 		void operator()() { error_code ec; h(ec, 0); }
 		Handler h;
 	};
 
 public:
-	SimpleSocketStream(boost::asio::io_service& x) : Stream(x) { }
+	SimpleSocketStream(boost::asio::io_context& x) : Stream(x) {}
 
-	virtual void init(const std::function<void ()>& postInit) {
+	virtual void init(const std::function<void()>& postInit) {
 		postInit();
 	}
 
@@ -140,7 +142,7 @@ public:
 
 	virtual void close() {
 		// Abortive close, just go away...
-		if(sock.is_open()) {
+		if (sock.is_open()) {
 			error_code ec;
 			sock.close(ec); // Ignore errors
 		}
@@ -153,15 +155,15 @@ class TLSSocketStream : public SocketStream<ssl::stream<ip::tcp::socket> > {
 	typedef SocketStream<ssl::stream<ip::tcp::socket> > Stream;
 
 	struct ShutdownHandler {
-		ShutdownHandler(const Handler& h) : h(h) { }
-		void operator()(const error_code &ec) { h(ec, 0); }
+		ShutdownHandler(const Handler& h) : h(h) {}
+		void operator()(const error_code& ec) { h(ec, 0); }
 		Handler h;
 	};
 
 public:
-	TLSSocketStream(io_service& x, ssl::context& y) : Stream(x, y) { }
+	TLSSocketStream(io_context& x, ssl::context& y) : Stream(x, y) {}
 
-	virtual void init(const std::function<void ()>& postInit) {
+	virtual void init(const std::function<void()>& postInit) {
 		sock.async_handshake(ssl::stream_base::server, std::bind(&TLSSocketStream::handleHandshake,
 			this, std::placeholders::_1, postInit));
 	}
@@ -172,15 +174,15 @@ public:
 
 	virtual void close() {
 		// Abortive close, just go away...
-		if(sock.lowest_layer().is_open()) {
+		if (sock.lowest_layer().is_open()) {
 			error_code ec;
 			sock.lowest_layer().close(ec); // Ignore errors
 		}
 	}
 
 private:
-	void handleHandshake(const error_code& ec, const std::function<void ()>& postInit) {
-		if(!ec) {
+	void handleHandshake(const error_code& ec, const std::function<void()>& postInit) {
+		if (!ec) {
 			postInit();
 		}
 	}
@@ -203,31 +205,31 @@ public:
 	{
 		acceptor.open(endpoint.protocol());
 		acceptor.set_option(socket_base::reuse_address(true));
-		if(endpoint.protocol() == ip::tcp::v6()) {
+		if (endpoint.protocol() == ip::tcp::v6()) {
 			acceptor.set_option(ip::v6_only(true));
 		}
 
 		auto a = endpoint.address().to_string();
 
 		acceptor.bind(endpoint);
-		acceptor.listen(socket_base::max_connections);
+		acceptor.listen(socket_base::max_listen_connections);
 
 		LOGC(sm.getCore(), SocketManager::className,
 			"Listening on " + formatEndpoint(endpoint) +
 			" (Encrypted: " + (info->secure() ? "Yes)" : "No)"));
 
 #ifdef HAVE_OPENSSL
-		if(info->secure()) {
+		if (info->secure()) {
 			context.reset(new ssl::context(ssl::context::tls));
-			
+
 			context->set_options(ssl::context::no_sslv2 | ssl::context::no_sslv3 | ssl::context::single_dh_use);
 			//context->set_password_callback(boost::bind(&server::get_password, this));
 			context->use_certificate_chain_file(info->TLSParams.cert);
 			context->use_private_key_file(info->TLSParams.pkey, ssl::context::pem);
 			context->use_tmp_dh_file(info->TLSParams.dh);
-				
+
 #if OPENSSL_VERSION_NUMBER >= 0x1000201fL
-				SSL_CTX_set1_curves_list(context->native_handle(), "P-256");
+			SSL_CTX_set1_curves_list(context->native_handle(), "P-256");
 #endif
 
 			EC_KEY* tmp_ecdh;
@@ -242,12 +244,12 @@ public:
 	}
 
 	void prepareAccept() {
-		if(!sm.work.get()) {
+		if (!sm.work.get()) {
 			return;
 		}
 
 #ifdef HAVE_OPENSSL
-		if(context) {
+		if (context) {
 			auto s = make_shared<TLSSocketStream>(sm.io, *context);
 			auto socket = make_shared<ManagedSocket>(sm, s, si);
 			acceptor.async_accept(s->sock.lowest_layer(), std::bind(&SocketFactory::handleAccept, shared_from_this(), std::placeholders::_1, socket));
@@ -262,7 +264,7 @@ public:
 	}
 
 	void handleAccept(const error_code& ec, const ManagedSocketPtr& socket) {
-		if(!ec) {
+		if (!ec) {
 			socket->sock->setOptions(sm.getBufferSize());
 			auto ip = socket->sock->getIp();
 			auto p = ip.find("%");
@@ -281,7 +283,7 @@ public:
 
 	void close() { acceptor.close(); }
 
-	SocketManager &sm;
+	SocketManager& sm;
 	ip::tcp::acceptor acceptor;
 	SocketManager::IncomingHandler handler;
 	ServerInfoPtr si;
@@ -291,32 +293,34 @@ public:
 
 };
 
+
 void SocketManager::prepareProtocol(ServerInfoPtr& si, bool v6) {
 	const string proto = v6 ? "IPv6" : "IPv4";
 	try {
 		using ip::tcp;
 		tcp::resolver r(io);
 
-		// Check if the configured addresses are valid
+		// Check if the configured hub address is valid
 		string& hubAddress = v6 ? si->address6 : si->address4;
 		if (!hubAddress.empty()) {
 			try {
-				auto remote = r.resolve(tcp::resolver::query(v6 ? tcp::v6() : tcp::v4(), hubAddress, si->port,
-					tcp::resolver::query::address_configured | tcp::resolver::query::passive));
-
-				v6 ? hasV6Address = true : hasV4Address = true;
+				// resolve with explicit protocol to avoid v4/v6 mismatch
+				auto remote = r.resolve(v6 ? tcp::v6() : tcp::v4(), hubAddress, si->port);
+				if (v6) hasV6Address = true; else hasV4Address = true;
 			} catch (const std::exception& e) {
 				LOG(SocketManager::className, "Error when resolving the " + proto + " hub address " + hubAddress + ": " + e.what());
 				hubAddress = Util::emptyString;
 			}
 		}
 
-		// Resolve the bind address
-		auto local = r.resolve(tcp::resolver::query(v6 ? tcp::v6() : tcp::v4(), v6 ? si->bind6 : si->bind4, si->port,
-			tcp::resolver::query::address_configured | tcp::resolver::query::passive));
+		// Resolve the bind address; default to wildcard when empty
+		const string bindHost = (v6 ? si->bind6 : si->bind4);
+		const string host = !bindHost.empty() ? bindHost : (v6 ? string("::") : string("0.0.0.0"));
 
-		for (auto i = local; i != tcp::resolver::iterator(); ++i) {
-			auto factory = make_shared<SocketFactory>(*this, incomingHandler, si, *i);
+		auto local = r.resolve(v6 ? tcp::v6() : tcp::v4(), host, si->port);
+
+		for (const auto& res : local) {
+			auto factory = make_shared<SocketFactory>(*this, incomingHandler, si, res.endpoint());
 			factory->prepareAccept();
 			factories.push_back(factory);
 		}
@@ -326,19 +330,18 @@ void SocketManager::prepareProtocol(ServerInfoPtr& si, bool v6) {
 }
 
 int SocketManager::run() {
-	//Sleep(10000);
 	LOG(SocketManager::className, "Starting");
 
-	work.reset(new io_service::work(io));
+	// Keep io_context running until shutdown()
+	work = std::make_unique<work_type>(io.get_executor());
 
-	for(auto i = servers.begin(), iend = servers.end(); i != iend; ++i) {
-		auto& si = *i;
+	for (auto& si: servers) {
 		bool listenAll = si->bind4.empty() && si->bind6.empty();
-		
+
 		if (!si->bind4.empty() || listenAll) {
 			prepareProtocol(si, false);
 		}
-			
+
 		if (!si->bind6.empty() || listenAll) {
 			prepareProtocol(si, true);
 		}
@@ -348,20 +351,20 @@ int SocketManager::run() {
 
 	io.run();
 
-	io.reset();
+	io.stop();
 
 	return 0;
 }
 
 void SocketManager::closeFactories() {
-	for(auto i = factories.begin(), iend = factories.end(); i != iend; ++i) {
-		(*i)->close();
+	for (auto& i: factories) {
+		i->close();
 	}
 	factories.clear();
 }
 
 void SocketManager::addJob(const Callback& callback) noexcept {
-	io.post(callback);
+	boost::asio::post(io, callback);
 }
 
 void SocketManager::addJob(const long msec, const Callback& callback) {
@@ -398,8 +401,8 @@ void SocketManager::setTimer(timer_ptr timer, const deadline_timer::duration_typ
 void SocketManager::handleWait(timer_ptr timer, const deadline_timer::duration_type& duration, const error_code& error, Callback* callback) {
 	bool run_on = duration.ticks();
 
-	if(!error) {
-		if(run_on) {
+	if (!error) {
+		if (run_on) {
 			// re-schedule the timer
 			timer->expires_at(timer->expires_at() + duration);
 			setTimer(timer, duration, callback);
@@ -408,14 +411,14 @@ void SocketManager::handleWait(timer_ptr timer, const deadline_timer::duration_t
 		addJob(*callback);
 	}
 
-	if(!run_on) {
+	if (!run_on) {
 		// this timer was only running once, so it has no cancel function
 		delete callback;
 	}
 }
 
 void SocketManager::cancelTimer(timer_ptr timer, Callback* callback) {
-	if(timer.get()) {
+	if (timer.get()) {
 		error_code ec;
 		timer->cancel(ec);
 	}
