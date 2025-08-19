@@ -1,4 +1,4 @@
-// Copyright Antony Polukhin, 2016-2024.
+// Copyright Antony Polukhin, 2016-2025.
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
@@ -37,7 +37,6 @@
 
 extern "C" {
 
-BOOST_SYMBOL_EXPORT inline void* boost_stacktrace_impl_return_nullptr() { return nullptr; }
 const char* boost_stacktrace_impl_current_exception_stacktrace();
 bool* boost_stacktrace_impl_ref_capture_stacktraces_at_throw();
 
